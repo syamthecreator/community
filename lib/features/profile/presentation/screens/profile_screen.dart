@@ -10,6 +10,7 @@ import 'package:image_picker/image_picker.dart';
 const String _mockUserName = 'Nithya Arun';
 const String _mockRole = 'Community Member';
 const String _mockCommunity = 'Green Valley Apartments';
+const String _mockRoom = '201';
 const String _mockPhone = '+91 98765 43210';
 
 /// Profile: details are managed by the admin (read-only).
@@ -89,7 +90,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           );
         }
 
-        return _GlassSheet(
+        return _glassSheet(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -126,7 +127,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: Colors.transparent,
       elevation: 0,
       barrierColor: Colors.black.withValues(alpha: 0.25),
-      builder: (_) => const _GlassSheet(child: _HelpContent()),
+      builder: (_) => _glassSheet(child: _helpContent()),
     );
   }
 
@@ -386,7 +387,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // ---------------------------------------------------------------
-  // Community and flat details (read-only, added by admin)
+  // Community, room and mobile details (read-only, added by admin)
   // ---------------------------------------------------------------
   Widget _buildDetailsCard() {
     final divider = Divider(
@@ -401,13 +402,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
       shadow: false,
       child: Column(
         children: [
-          const _DetailRow(
+          _detailRow(
             icon: Icons.apartment_rounded,
             label: 'Community',
             value: _mockCommunity,
           ),
           divider,
-          const _DetailRow(
+          _detailRow(
+            icon: Icons.meeting_room_outlined,
+            label: 'Room Number',
+            value: _mockRoom,
+          ),
+          divider,
+          _detailRow(
             icon: Icons.phone_outlined,
             label: 'Mobile Number',
             value: _mockPhone,
@@ -459,7 +466,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       blur: 0,
       opacity: 0.58,
       shadow: false,
-      child: _MenuRow(
+      child: _menuRow(
         icon: Icons.help_outline_rounded,
         title: 'Help & Support',
         onTap: _showHelp,
@@ -470,272 +477,248 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
 // ---------------------------------------------------------------
 // Glass bottom sheet shell (drag handle drawn inside the glass)
+// Was: _GlassSheet
 // ---------------------------------------------------------------
-class _GlassSheet extends StatelessWidget {
-  final Widget child;
-  const _GlassSheet({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Glass(
-      radius: const BorderRadius.vertical(top: Radius.circular(30)),
-      blur: 28,
-      opacity: 0.80,
-      shadow: false,
-      child: Material(
-        type: MaterialType.transparency,
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 10),
-              Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.slate.withValues(alpha: 0.35),
-                  borderRadius: BorderRadius.circular(4),
-                ),
+Widget _glassSheet({required Widget child}) {
+  return Glass(
+    radius: const BorderRadius.vertical(top: Radius.circular(30)),
+    blur: 28,
+    opacity: 0.80,
+    shadow: false,
+    child: Material(
+      type: MaterialType.transparency,
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 10),
+            Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.slate.withValues(alpha: 0.35),
+                borderRadius: BorderRadius.circular(4),
               ),
-              const SizedBox(height: 10),
-              Flexible(child: child),
-            ],
-          ),
+            ),
+            const SizedBox(height: 10),
+            Flexible(child: child),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
 }
 
 // ---------------------------------------------------------------
 // Small reusable pieces
 // ---------------------------------------------------------------
-class _DetailRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
 
-  const _DetailRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
+/// Was: _DetailRow
+Widget _detailRow({
+  required IconData icon,
+  required String label,
+  required String value,
+}) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 12),
+    child: Row(
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: AppColors.brand.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.7)),
+          ),
+          child: Icon(icon, size: 19, color: AppColors.brand),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13.5,
+            fontWeight: FontWeight.w500,
+            color: AppColors.body,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 14.5,
+              fontWeight: FontWeight.w600,
+              color: AppColors.title,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+/// Was: _MenuRow
+Widget _menuRow({
+  required IconData icon,
+  required String title,
+  required VoidCallback onTap,
+}) {
+  return GestureDetector(
+    behavior: HitTestBehavior.opaque,
+    onTap: onTap,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Row(
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: AppColors.brand.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.7)),
-            ),
-            child: Icon(icon, size: 19, color: AppColors.brand),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 13.5,
-              fontWeight: FontWeight.w500,
-              color: AppColors.body,
-            ),
-          ),
-          const SizedBox(width: 12),
+          Icon(icon, size: 23, color: AppColors.brand),
+          const SizedBox(width: 14),
           Expanded(
             child: Text(
-              value,
-              textAlign: TextAlign.right,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              title,
               style: const TextStyle(
-                fontSize: 14.5,
+                fontSize: 15.5,
                 fontWeight: FontWeight.w600,
                 color: AppColors.title,
               ),
             ),
           ),
+          const Icon(Icons.chevron_right_rounded, color: AppColors.hint),
         ],
       ),
-    );
-  }
-}
-
-class _MenuRow extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
-
-  const _MenuRow({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        child: Row(
-          children: [
-            Icon(icon, size: 23, color: AppColors.brand),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 15.5,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.title,
-                ),
-              ),
-            ),
-            const Icon(Icons.chevron_right_rounded, color: AppColors.hint),
-          ],
-        ),
-      ),
-    );
-  }
+    ),
+  );
 }
 
 // ---------------------------------------------------------------
 // Help & Support content: who to contact
 // ---------------------------------------------------------------
-class _HelpContent extends StatelessWidget {
-  const _HelpContent();
+const List<({IconData icon, String name, String role, String phone})>
+_helpContacts = [
+  (
+    icon: Icons.apartment_rounded,
+    name: 'Management Office',
+    role: 'Community manager',
+    phone: '+91 98765 00001',
+  ),
+  (
+    icon: Icons.build_outlined,
+    name: 'Building Caretaker',
+    role: 'Repairs and maintenance',
+    phone: '+91 98765 00002',
+  ),
+  (
+    icon: Icons.shield_outlined,
+    name: 'Security Desk',
+    role: 'Gate and guest entries',
+    phone: '+91 98765 00003',
+  ),
+];
 
-  static const List<({IconData icon, String name, String role, String phone})>
-  _contacts = [
-    (
-      icon: Icons.apartment_rounded,
-      name: 'Management Office',
-      role: 'Community manager',
-      phone: '+91 98765 00001',
-    ),
-    (
-      icon: Icons.build_outlined,
-      name: 'Building Caretaker',
-      role: 'Repairs and maintenance',
-      phone: '+91 98765 00002',
-    ),
-    (
-      icon: Icons.shield_outlined,
-      name: 'Security Desk',
-      role: 'Gate and guest entries',
-      phone: '+91 98765 00003',
-    ),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Help & Support',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.2,
-              color: AppColors.title,
-            ),
+/// Was: _HelpContent
+Widget _helpContent() {
+  return SingleChildScrollView(
+    padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Help & Support',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.2,
+            color: AppColors.title,
           ),
-          const SizedBox(height: 4),
-          const Text(
-            'For anything urgent, reach the right person directly.',
-            style: TextStyle(
-              fontSize: 13.5,
-              height: 1.4,
-              fontWeight: FontWeight.w500,
-              color: AppColors.body,
-            ),
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          'For anything urgent, reach the right person directly.',
+          style: TextStyle(
+            fontSize: 13.5,
+            height: 1.4,
+            fontWeight: FontWeight.w500,
+            color: AppColors.body,
           ),
-          const SizedBox(height: 16),
-          Glass(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            blur: 0,
-            opacity: 0.58,
-            shadow: false,
-            child: Column(
-              children: [
-                for (var i = 0; i < _contacts.length; i++) ...[
-                  if (i > 0)
-                    Divider(
-                      height: 1,
-                      color: AppColors.border.withValues(alpha: 0.25),
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 42,
-                          height: 42,
-                          decoration: BoxDecoration(
-                            color: AppColors.brand.withValues(alpha: 0.12),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.7),
-                            ),
-                          ),
-                          child: Icon(
-                            _contacts[i].icon,
-                            size: 21,
-                            color: AppColors.brand,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _contacts[i].name,
-                                style: const TextStyle(
-                                  fontSize: 14.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.title,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                _contacts[i].role,
-                                style: const TextStyle(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppColors.body,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Text(
-                          _contacts[i].phone,
-                          style: const TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.brandDark,
-                          ),
-                        ),
-                      ],
-                    ),
+        ),
+        const SizedBox(height: 16),
+        Glass(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          blur: 0,
+          opacity: 0.58,
+          shadow: false,
+          child: Column(
+            children: [
+              for (var i = 0; i < _helpContacts.length; i++) ...[
+                if (i > 0)
+                  Divider(
+                    height: 1,
+                    color: AppColors.border.withValues(alpha: 0.25),
                   ),
-                ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: AppColors.brand.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.7),
+                          ),
+                        ),
+                        child: Icon(
+                          _helpContacts[i].icon,
+                          size: 21,
+                          color: AppColors.brand,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _helpContacts[i].name,
+                              style: const TextStyle(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.title,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              _helpContacts[i].role,
+                              style: const TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.body,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        _helpContacts[i].phone,
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.brandDark,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
-            ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
 }

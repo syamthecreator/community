@@ -1352,21 +1352,21 @@ class ReportIssueViewState extends State<ReportIssueView> {
   Widget _buildBottomBar() {
     if (_submitted) {
       return _bottomBarShell(
-        _PrimaryButton(label: 'Back to Home', onPressed: widget.onExit),
+        _primaryButton(label: 'Back to Home', onPressed: widget.onExit),
       );
     }
 
     switch (_step) {
       case 1:
         return _bottomBarShell(
-          _PrimaryButton(
+          _primaryButton(
             label: 'Review',
             onPressed: _canContinueFromDetails ? _goToReview : null,
           ),
         );
       case 2:
         return _bottomBarShell(
-          _PrimaryButton(
+          _primaryButton(
             label: 'Submit Report',
             loading: _isSubmitting,
             onPressed: _isSubmitting ? null : _submit,
@@ -1392,58 +1392,48 @@ class ReportIssueViewState extends State<ReportIssueView> {
 
 // ---------------------------------------------------------------
 // Primary button (same look as the login screens)
+// Was: _PrimaryButton
 // ---------------------------------------------------------------
-class _PrimaryButton extends StatelessWidget {
-  final String label;
-  final VoidCallback? onPressed;
-  final bool loading;
-
-  const _PrimaryButton({
-    required this.label,
-    required this.onPressed,
-    this.loading = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 54,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.brand,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: AppColors.disabled,
-          disabledForegroundColor: Colors.white,
-          elevation: 0,
-          padding: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 150),
-          child: loading
-              ? const SizedBox(
-                  key: ValueKey('loader'),
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.4,
-                    color: Colors.white,
-                  ),
-                )
-              : Text(
-                  label,
-                  key: ValueKey(label),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-        ),
+Widget _primaryButton({
+  required String label,
+  required VoidCallback? onPressed,
+  bool loading = false,
+}) {
+  return SizedBox(
+    width: double.infinity,
+    height: 54,
+    child: ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.brand,
+        foregroundColor: Colors.white,
+        disabledBackgroundColor: AppColors.disabled,
+        disabledForegroundColor: Colors.white,
+        elevation: 0,
+        padding: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
-    );
-  }
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 150),
+        child: loading
+            ? const SizedBox(
+                key: ValueKey('loader'),
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.4,
+                  color: Colors.white,
+                ),
+              )
+            : Text(
+                label,
+                key: ValueKey(label),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+      ),
+    ),
+  );
 }

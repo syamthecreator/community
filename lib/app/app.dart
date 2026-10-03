@@ -26,7 +26,7 @@ class _CommunityApp extends StatelessWidget {
     return MaterialApp(
       title: 'Community App',
       debugShowCheckedModeBanner: false,
-      initialRoute: AppRouter.home,
+      initialRoute: AppRouter.splash,
       onGenerateRoute: AppRouter.generateRoute,
     );
   }

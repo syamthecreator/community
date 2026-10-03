@@ -1,9 +1,242 @@
 import 'package:community/core/constants/asset_constants.dart';
 import 'package:community/core/theme/app_colors.dart';
-import 'package:community/features/notifications/presentation/screens/app_notification.dart';
-import 'package:community/features/notifications/presentation/screens/notification_store.dart';
 import 'package:flutter/material.dart';
 
+// ───────────────────────── Model ─────────────────────────
+enum NotificationType {
+  request,
+  announcement,
+  maintenance,
+  event,
+  guest,
+  payment,
+}
+
+enum NotificationPriority { important, normal }
+
+class AppNotification {
+  final String id;
+  final String title;
+  final String message;
+  final NotificationType type;
+  final NotificationPriority priority;
+  final IconData icon;
+  final DateTime time;
+  final bool isRead;
+
+  const AppNotification({
+    required this.id,
+    required this.title,
+    required this.message,
+    required this.type,
+    required this.icon,
+    required this.time,
+    this.priority = NotificationPriority.normal,
+    this.isRead = false,
+  });
+
+  bool get isImportant => priority == NotificationPriority.important;
+
+  AppNotification copyWith({bool? isRead}) {
+    return AppNotification(
+      id: id,
+      title: title,
+      message: message,
+      type: type,
+      icon: icon,
+      time: time,
+      priority: priority,
+      isRead: isRead ?? this.isRead,
+    );
+  }
+
+  static const List<String> _months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+
+  String get timeLabel {
+    final now = DateTime.now();
+
+    final today = DateTime(now.year, now.month, now.day);
+
+    final day = DateTime(time.year, time.month, time.day);
+
+    final diff = today.difference(day).inDays;
+
+    final hour = time.hour % 12 == 0 ? 12 : time.hour % 12;
+
+    final minute = time.minute.toString().padLeft(2, '0');
+
+    final period = time.hour >= 12 ? 'PM' : 'AM';
+
+    final clock = '$hour:$minute $period';
+
+    if (diff == 0) {
+      return 'Today, $clock';
+    }
+
+    if (diff == 1) {
+      return 'Yesterday, $clock';
+    }
+
+    return '${time.day} ${_months[time.month - 1]}, $clock';
+  }
+}
+
+List<AppNotification> mockNotifications() {
+  final now = DateTime.now();
+
+  return [
+    AppNotification(
+      id: 'ntf-1',
+      title: 'Issue Status Updated',
+      message: 'Your plumbing issue is now In progress.',
+      type: NotificationType.request,
+      icon: Icons.water_drop_outlined,
+      time: now.subtract(const Duration(minutes: 25)),
+    ),
+
+    AppNotification(
+      id: 'ntf-2',
+      title: 'New Announcement',
+      message: 'Water supply will be interrupted tomorrow (10 AM – 2 PM).',
+      type: NotificationType.announcement,
+      priority: NotificationPriority.important,
+      icon: Icons.campaign_outlined,
+      time: now.subtract(const Duration(hours: 2)),
+    ),
+
+    AppNotification(
+      id: 'ntf-3',
+      title: 'Maintenance Update',
+      message: 'Lift maintenance is scheduled for the 15th.',
+      type: NotificationType.maintenance,
+      icon: Icons.elevator_outlined,
+      time: now.subtract(const Duration(hours: 5)),
+    ),
+
+    AppNotification(
+      id: 'ntf-4',
+      title: 'Guest Entry Recorded',
+      message: 'Security has recorded your guest for Flat 201.',
+      type: NotificationType.guest,
+      icon: Icons.person_add_alt_1_outlined,
+      time: now.subtract(const Duration(days: 1, hours: 1)),
+      isRead: true,
+    ),
+
+    AppNotification(
+      id: 'ntf-5',
+      title: 'Security Contribution Due',
+      message: 'Your monthly security contribution is due by the 5th.',
+      type: NotificationType.payment,
+      priority: NotificationPriority.important,
+      icon: Icons.shield_outlined,
+      time: now.subtract(const Duration(days: 2)),
+      isRead: true,
+    ),
+
+    AppNotification(
+      id: 'ntf-6',
+      title: 'Event Reminder',
+      message: 'Community meet this Sunday at the clubhouse.',
+      type: NotificationType.event,
+      icon: Icons.event_outlined,
+      time: now.subtract(const Duration(days: 3)),
+      isRead: true,
+    ),
+
+    AppNotification(
+      id: 'ntf-7',
+      title: 'Issue Resolved',
+      message: 'Your electrical issue has been marked as resolved.',
+      type: NotificationType.request,
+      icon: Icons.bolt_rounded,
+      time: now.subtract(const Duration(days: 4)),
+      isRead: true,
+    ),
+  ];
+}
+
+// ───────────────────────── Store ─────────────────────────
+class NotificationStore extends ChangeNotifier {
+  NotificationStore._();
+
+  static final NotificationStore instance = NotificationStore._();
+
+  final List<AppNotification> _items = mockNotifications();
+
+  List<AppNotification> get notifications => List.unmodifiable(_items);
+
+  int get unreadCount => _items.where((n) => !n.isRead).length;
+
+  void _setRead(String id, bool read) {
+    final index = _items.indexWhere((n) => n.id == id);
+
+    if (index == -1) return;
+
+    if (_items[index].isRead == read) return;
+
+    _items[index] = _items[index].copyWith(isRead: read);
+
+    notifyListeners();
+  }
+
+  void markRead(String id) {
+    _setRead(id, true);
+  }
+
+  void toggleRead(String id) {
+    final index = _items.indexWhere((n) => n.id == id);
+
+    if (index == -1) return;
+
+    _setRead(id, !_items[index].isRead);
+  }
+
+  void markAllRead() {
+    if (unreadCount == 0) return;
+
+    for (var i = 0; i < _items.length; i++) {
+      _items[i] = _items[i].copyWith(isRead: true);
+    }
+
+    notifyListeners();
+  }
+
+  int remove(String id) {
+    final index = _items.indexWhere((n) => n.id == id);
+
+    if (index == -1) return -1;
+
+    _items.removeAt(index);
+
+    notifyListeners();
+
+    return index;
+  }
+
+  void restore(AppNotification notification, int index) {
+    final position = index.clamp(0, _items.length);
+
+    _items.insert(position, notification);
+
+    notifyListeners();
+  }
+}
+
+// ───────────────────────── Screen ─────────────────────────
 enum _Filter { all, important, normal }
 
 extension on _Filter {
@@ -11,8 +244,10 @@ extension on _Filter {
     switch (this) {
       case _Filter.all:
         return 'All';
+
       case _Filter.important:
         return 'Important';
+
       case _Filter.normal:
         return 'Normal';
     }
@@ -21,25 +256,10 @@ extension on _Filter {
 
 enum _MenuAction { toggleRead, delete }
 
-/// "Notifications" tab: personal alerts such as request status changes,
-/// announcements, maintenance notices, guest entries and reminders.
 class NotificationsScreen extends StatefulWidget {
-  /// When set, a back button is shown (used to jump back to the Home tab).
   final VoidCallback? onBack;
 
-  /// Tapping a request notification jumps to the Requests tab.
-  final VoidCallback? onOpenRequests;
-
-  /// Tapping an announcement / maintenance / event notification jumps
-  /// to the Updates tab.
-  final VoidCallback? onOpenUpdates;
-
-  const NotificationsScreen({
-    super.key,
-    this.onBack,
-    this.onOpenRequests,
-    this.onOpenUpdates,
-  });
+  const NotificationsScreen({super.key, this.onBack});
 
   @override
   State<NotificationsScreen> createState() => _NotificationsScreenState();
@@ -50,43 +270,31 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   _Filter _filter = _Filter.all;
 
-  bool _matches(AppNotification n) {
+  bool _matches(AppNotification notification) {
     switch (_filter) {
       case _Filter.all:
         return true;
+
       case _Filter.important:
-        return n.isImportant;
+        return notification.isImportant;
+
       case _Filter.normal:
-        return !n.isImportant;
+        return !notification.isImportant;
     }
   }
 
-  Future<void> _refresh() async {
-    await Future.delayed(const Duration(milliseconds: 700));
+  void _open(AppNotification notification) {
+    _store.markRead(notification.id);
   }
 
-  void _open(AppNotification n) {
-    _store.markRead(n.id);
-
-    switch (n.type) {
-      case NotificationType.request:
-        widget.onOpenRequests?.call();
-      case NotificationType.announcement:
-      case NotificationType.maintenance:
-      case NotificationType.event:
-      case NotificationType.payment:
-        widget.onOpenUpdates?.call();
-      case NotificationType.guest:
-        break;
-    }
-  }
-
-  void _onMenu(_MenuAction action, AppNotification n) {
+  void _onMenu(_MenuAction action, AppNotification notification) {
     switch (action) {
       case _MenuAction.toggleRead:
-        _store.toggleRead(n.id);
+        _store.toggleRead(notification.id);
+
       case _MenuAction.delete:
-        final index = _store.remove(n.id);
+        final index = _store.remove(notification.id);
+
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
@@ -94,7 +302,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               content: const Text('Notification deleted'),
               action: SnackBarAction(
                 label: 'Undo',
-                onPressed: () => _store.restore(n, index),
+                onPressed: () {
+                  if (index != -1) {
+                    _store.restore(notification, index);
+                  }
+                },
               ),
             ),
           );
@@ -115,37 +327,31 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
           ),
         ),
+
         SafeArea(
           child: ListenableBuilder(
             listenable: _store,
             builder: (context, _) {
               final all = _store.notifications;
+
               final unread = _store.unreadCount;
+
               final important = all.where((n) => n.isImportant).length;
+
               final items = all.where(_matches).toList();
 
               return Column(
                 children: [
                   _buildHeader(unread),
+
                   _buildFilters(
                     all: all.length,
                     important: important,
                     normal: all.length - important,
                   ),
+
                   Expanded(
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 220),
-                      layoutBuilder: (current, previous) => Stack(
-                        alignment: Alignment.topCenter,
-                        children: [...previous, ?current],
-                      ),
-                      child: KeyedSubtree(
-                        key: ValueKey(_filter.name),
-                        child: items.isEmpty
-                            ? _buildEmpty()
-                            : _buildList(items),
-                      ),
-                    ),
+                    child: items.isEmpty ? _buildEmpty() : _buildList(items),
                   ),
                 ],
               );
@@ -156,13 +362,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  // ---------------------------------------------------------------
-  // Header: back button, title, unread summary, "mark all as read"
-  // ---------------------------------------------------------------
   Widget _buildHeader(int unread) {
     final summary = unread == 0
         ? "You're all caught up"
-        : '$unread unread ${unread == 1 ? 'notification' : 'notifications'}';
+        : '$unread unread '
+              '${unread == 1 ? 'notification' : 'notifications'}';
 
     final circleStyle = IconButton.styleFrom(
       backgroundColor: Colors.white,
@@ -182,8 +386,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               color: AppColors.title,
               style: circleStyle,
             ),
+
             const SizedBox(width: 12),
           ],
+
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -199,7 +405,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     color: AppColors.title,
                   ),
                 ),
+
                 const SizedBox(height: 2),
+
                 Text(
                   summary,
                   style: const TextStyle(
@@ -211,6 +419,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               ],
             ),
           ),
+
           if (unread > 0)
             IconButton(
               tooltip: 'Mark all as read',
@@ -224,20 +433,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  // ---------------------------------------------------------------
-  // Filter pills with counts: All / Important / Normal
-  // ---------------------------------------------------------------
   Widget _buildFilters({
     required int all,
     required int important,
     required int normal,
   }) {
-    int countFor(_Filter f) {
-      switch (f) {
+    int countFor(_Filter filter) {
+      switch (filter) {
         case _Filter.all:
           return all;
+
         case _Filter.important:
           return important;
+
         case _Filter.normal:
           return normal;
       }
@@ -249,6 +457,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         children: [
           for (var i = 0; i < _Filter.values.length; i++) ...[
             if (i > 0) const SizedBox(width: 10),
+
             Expanded(
               child: _buildFilterPill(
                 _Filter.values[i],
@@ -265,7 +474,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final selected = _filter == filter;
 
     return InkWell(
-      onTap: () => setState(() => _filter = filter),
+      onTap: () {
+        setState(() {
+          _filter = filter;
+        });
+      },
       borderRadius: BorderRadius.circular(22),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
@@ -291,7 +504,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 color: selected ? Colors.white : AppColors.title,
               ),
             ),
+
             const SizedBox(width: 6),
+
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1.5),
               decoration: BoxDecoration(
@@ -315,64 +530,58 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  // ---------------------------------------------------------------
-  // List (pull down to refresh)
-  // ---------------------------------------------------------------
   Widget _buildList(List<AppNotification> items) {
-    return RefreshIndicator(
-      color: AppColors.brand,
-      onRefresh: _refresh,
-      child: ListView.separated(
-        physics: const AlwaysScrollableScrollPhysics(
-          parent: ClampingScrollPhysics(),
-        ),
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-        itemCount: items.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 12),
-        itemBuilder: (context, index) => _buildCard(items[index], index),
+    return ListView.separated(
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: ClampingScrollPhysics(),
       ),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+      itemCount: items.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        return _buildCard(items[index], index);
+      },
     );
   }
 
-  Widget _buildCard(AppNotification n, int index) {
+  Widget _buildCard(AppNotification notification, int index) {
     final delayStep = index > 6 ? 6 : index;
 
-    // Important alerts get a red-tinted icon, the rest use the brand colour.
-    final Color accent = n.isImportant ? AppColors.error : AppColors.brand;
+    final Color accent = notification.isImportant
+        ? AppColors.error
+        : AppColors.brand;
 
-    // Unread cards get a faint green wash so they stand out.
-    final Color cardColor = n.isRead
+    final Color cardColor = notification.isRead
         ? Colors.white
-        : Color.alphaBlend(
-            AppColors.brand.withValues(alpha: 0.06),
-            Colors.white,
-          );
+        : Color.alphaBlend(AppColors.brand.withValues(alpha: 0.06), Colors.white);
 
     return TweenAnimationBuilder<double>(
-      key: ValueKey(n.id),
+      key: ValueKey(notification.id),
       tween: Tween(begin: 0, end: 1),
       duration: Duration(milliseconds: 300 + delayStep * 90),
       curve: Curves.easeOutCubic,
-      builder: (context, value, child) => Opacity(
-        opacity: value,
-        child: Transform.translate(
-          offset: Offset(0, (1 - value) * 16),
-          child: child,
-        ),
-      ),
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: Transform.translate(
+            offset: Offset(0, (1 - value) * 16),
+            child: child,
+          ),
+        );
+      },
       child: Material(
         color: cardColor,
         clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(
-            color: n.isRead
+            color: notification.isRead
                 ? AppColors.border.withValues(alpha: 0.3)
                 : AppColors.brand.withValues(alpha: 0.3),
           ),
         ),
         child: InkWell(
-          onTap: () => _open(n),
+          onTap: () => _open(notification),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 6, 16),
             child: Row(
@@ -385,9 +594,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     color: accent.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(n.icon, color: accent, size: 23),
+                  child: Icon(notification.icon, color: accent, size: 23),
                 ),
+
                 const SizedBox(width: 14),
+
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -396,7 +607,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         children: [
                           Flexible(
                             child: Text(
-                              n.title,
+                              notification.title,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
@@ -406,8 +617,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               ),
                             ),
                           ),
-                          if (!n.isRead) ...[
+
+                          if (!notification.isRead) ...[
                             const SizedBox(width: 8),
+
                             Container(
                               width: 8,
                               height: 8,
@@ -419,9 +632,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           ],
                         ],
                       ),
+
                       const SizedBox(height: 4),
+
                       Text(
-                        n.message,
+                        notification.message,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -431,7 +646,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           color: AppColors.body,
                         ),
                       ),
+
                       const SizedBox(height: 10),
+
                       Row(
                         children: [
                           const Icon(
@@ -439,10 +656,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             size: 13,
                             color: AppColors.hint,
                           ),
+
                           const SizedBox(width: 5),
+
                           Flexible(
                             child: Text(
-                              n.timeLabel,
+                              notification.timeLabel,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
@@ -457,7 +676,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     ],
                   ),
                 ),
-                _buildMenu(n),
+
+                _buildMenu(notification),
               ],
             ),
           ),
@@ -466,10 +686,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  // ---------------------------------------------------------------
-  // Three-dot menu: mark read / unread, delete
-  // ---------------------------------------------------------------
-  Widget _buildMenu(AppNotification n) {
+  Widget _buildMenu(AppNotification notification) {
     return PopupMenuButton<_MenuAction>(
       tooltip: 'More',
       padding: EdgeInsets.zero,
@@ -478,22 +695,26 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       icon: const Icon(Icons.more_vert_rounded, color: AppColors.hint),
-      onSelected: (action) => _onMenu(action, n),
+      onSelected: (action) {
+        _onMenu(action, notification);
+      },
       itemBuilder: (context) => [
         PopupMenuItem(
           value: _MenuAction.toggleRead,
           child: Row(
             children: [
               Icon(
-                n.isRead
+                notification.isRead
                     ? Icons.mark_email_unread_outlined
                     : Icons.done_all_rounded,
                 size: 19,
                 color: AppColors.title,
               ),
+
               const SizedBox(width: 10),
+
               Text(
-                n.isRead ? 'Mark as unread' : 'Mark as read',
+                notification.isRead ? 'Mark as unread' : 'Mark as read',
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -503,6 +724,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ],
           ),
         ),
+
         const PopupMenuItem(
           value: _MenuAction.delete,
           child: Row(
@@ -512,7 +734,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 size: 19,
                 color: AppColors.error,
               ),
+
               SizedBox(width: 10),
+
               Text(
                 'Delete',
                 style: TextStyle(
@@ -528,9 +752,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  // ---------------------------------------------------------------
-  // Empty state
-  // ---------------------------------------------------------------
   Widget _buildEmpty() {
     final isAll = _filter == _Filter.all;
 
@@ -553,7 +774,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 color: AppColors.brand,
               ),
             ),
+
             const SizedBox(height: 18),
+
             Text(
               isAll ? 'No notifications' : 'Nothing here',
               style: const TextStyle(
@@ -562,13 +785,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 color: AppColors.title,
               ),
             ),
+
             const SizedBox(height: 6),
+
             Text(
               isAll
-                  ? 'Alerts about your requests and community updates '
-                        'will show up here.'
-                  : 'No ${_filter.label.toLowerCase()} notifications '
-                        'right now.',
+                  ? 'Alerts about your requests and community updates will show up here.'
+                  : 'No ${_filter.label.toLowerCase()} notifications right now.',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 13.5,

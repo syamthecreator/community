@@ -9,7 +9,6 @@ import 'package:provider/provider.dart';
 import 'package:community/features/authentication/presentation/widgets/phone_step.dart';
 import 'package:community/features/authentication/presentation/widgets/pin_step.dart';
 
-
 class AuthScreen extends StatelessWidget {
   const AuthScreen({super.key});
 
@@ -58,15 +57,15 @@ class AuthScreen extends StatelessWidget {
                                     ),
                                     transitionBuilder: (child, anim) =>
                                         FadeTransition(
-                                      opacity: anim,
-                                      child: SlideTransition(
-                                        position: Tween<Offset>(
-                                          begin: const Offset(0.06, 0),
-                                          end: Offset.zero,
-                                        ).animate(anim),
-                                        child: child,
-                                      ),
-                                    ),
+                                          opacity: anim,
+                                          child: SlideTransition(
+                                            position: Tween<Offset>(
+                                              begin: const Offset(0.06, 0),
+                                              end: Offset.zero,
+                                            ).animate(anim),
+                                            child: child,
+                                          ),
+                                        ),
                                     child: onPin
                                         ? const PinStep(key: ValueKey('pin'))
                                         : const PhoneStep(
@@ -89,13 +88,13 @@ class AuthScreen extends StatelessWidget {
       },
     );
   }
-}
 
-class AuthHeader extends StatelessWidget {
-  const AuthHeader({super.key});
+  // ---------------------------------------------------------------------------
+  // Shared widgets (previously separate classes)
+  // ---------------------------------------------------------------------------
 
-  @override
-  Widget build(BuildContext context) {
+  /// Was: AuthHeader
+  static Widget header() {
     return Column(
       children: [
         Image.asset(AssetConstants.nivaLogo, width: 110, fit: BoxFit.contain),
@@ -134,14 +133,8 @@ class AuthHeader extends StatelessWidget {
       ],
     );
   }
-}
 
-class PhoneNumberField extends StatelessWidget {
-  const PhoneNumberField({super.key, required this.focusNode});
-
-  final FocusNode focusNode;
-
-  String? _errorText(AuthValidationError? error) {
+  static String? _phoneErrorText(AuthValidationError? error) {
     switch (error) {
       case AuthValidationError.empty:
       case AuthValidationError.invalidNumber:
@@ -155,11 +148,11 @@ class PhoneNumberField extends StatelessWidget {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
+  /// Was: PhoneNumberField
+  static Widget phoneNumberField({required FocusNode focusNode}) {
     return Consumer<AuthProvider>(
       builder: (context, auth, _) {
-        final errorText = _errorText(auth.validationError);
+        final errorText = _phoneErrorText(auth.validationError);
         final hasError = errorText != null;
         final digits = auth.phoneController.text.length;
 
@@ -239,13 +232,19 @@ class PhoneNumberField extends StatelessWidget {
                             child: TextField(
                               controller: auth.phoneController,
                               focusNode: focusNode,
-                              keyboardType: TextInputType.number,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: false,
+                                    signed: false,
+                                  ),
                               textInputAction: TextInputAction.done,
                               autofillHints: const [
                                 AutofillHints.telephoneNumberNational,
                               ],
                               inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
+                                FilteringTextInputFormatter.allow(
+                                  RegExp(r'[0-9]'),
+                                ),
                                 LengthLimitingTextInputFormatter(10),
                               ],
                               onChanged: (_) => auth.clearError(),
@@ -347,17 +346,15 @@ class PhoneNumberField extends StatelessWidget {
       },
     );
   }
-}
 
-class AuthContinueButton extends StatelessWidget {
-  const AuthContinueButton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
+  /// Was: AuthContinueButton
+  static Widget continueButton() {
     return Consumer<AuthProvider>(
       builder: (context, auth, _) {
         return GlassPrimaryButton(
-          onPressed: auth.isPhoneReady ? () => auth.continueAuth(context) : null,
+          onPressed: auth.isPhoneReady
+              ? () => auth.continueAuth(context)
+              : null,
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 150),
             child: auth.isLoading
@@ -376,26 +373,18 @@ class AuthContinueButton extends StatelessWidget {
       },
     );
   }
-}
 
-class AuthTerms extends StatelessWidget {
-  const AuthTerms({super.key});
-
-  @override
-  Widget build(BuildContext context) {
+  /// Was: AuthTerms
+  static Widget terms() {
     return const Text(
       'By continuing, you agree to our Terms of Service\nand Privacy Policy',
       textAlign: TextAlign.center,
       style: TextStyle(fontSize: 12, height: 1.5, color: AppColors.body),
     );
   }
-}
 
-class AuthFooter extends StatelessWidget {
-  const AuthFooter({super.key});
-
-  @override
-  Widget build(BuildContext context) {
+  /// Was: AuthFooter
+  static Widget footer() {
     final color = AppColors.brandDark.withValues(alpha: 0.8);
 
     return Padding(

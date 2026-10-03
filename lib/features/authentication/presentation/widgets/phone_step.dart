@@ -31,11 +31,11 @@ class _PhoneStepState extends State<PhoneStep> {
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             children: [
-              const FadeSlideIn(child: AuthHeader()),
+              FadeSlideIn(child: AuthScreen.header()),
               const SizedBox(height: 22),
-              const FadeSlideIn(
-                delay: Duration(milliseconds: 120),
-                child: AuthStepper(step: 1),
+              FadeSlideIn(
+                delay: const Duration(milliseconds: 120),
+                child: authStepper(step: 1),
               ),
               const SizedBox(height: 22),
               FadeSlideIn(
@@ -44,39 +44,32 @@ class _PhoneStepState extends State<PhoneStep> {
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
-                      PhoneNumberField(focusNode: _phoneFocus),
+                      AuthScreen.phoneNumberField(focusNode: _phoneFocus),
                       const SizedBox(height: 18),
-                      const AuthContinueButton(),
+                      _continueButton(),
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 16),
-              const FadeSlideIn(
-                delay: Duration(milliseconds: 320),
-                child: AuthTerms(),
+              FadeSlideIn(
+                delay: const Duration(milliseconds: 320),
+                child: AuthScreen.terms(),
               ),
             ],
           ),
         ),
         const Spacer(flex: 3),
-        const FadeSlideIn(
-          delay: Duration(milliseconds: 420),
-          child: AuthFooter(),
+        FadeSlideIn(
+          delay: const Duration(milliseconds: 420),
+          child: AuthScreen.footer(),
         ),
       ],
     );
   }
-}
 
-// ---- AuthHeader, PhoneNumberField, AuthTerms, AuthFooter ----
-// Paste them EXACTLY as they are in your current auth_screen.dart.
-
-class AuthContinueButton extends StatelessWidget {
-  const AuthContinueButton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
+  /// Was: AuthContinueButton
+  Widget _continueButton() {
     return Consumer<AuthProvider>(
       builder: (context, auth, _) {
         return GlassPrimaryButton(
