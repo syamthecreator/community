@@ -2,103 +2,91 @@ import 'package:community/core/constants/asset_constants.dart';
 import 'package:community/core/theme/app_colors.dart';
 import 'package:community/core/widgets/glass.dart';
 import 'package:community/core/widgets/motion.dart';
-import 'package:community/features/authentication/presentation/widgets/auth_step.dart';
 import 'package:community/features/authentication/provider/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:community/features/authentication/presentation/widgets/phone_step.dart';
+import 'package:community/features/authentication/presentation/widgets/pin_step.dart';
 
-class AuthScreen extends StatefulWidget {
+
+class AuthScreen extends StatelessWidget {
   const AuthScreen({super.key});
 
   @override
-  State<AuthScreen> createState() => _AuthScreenState();
-}
-
-class _AuthScreenState extends State<AuthScreen> {
-  final FocusNode _phoneFocus = FocusNode();
-
-  @override
-  void dispose() {
-    _phoneFocus.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    // Taps on empty space dismiss the keyboard; fields and buttons consume
-    // their own taps.
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        backgroundColor: const Color(0xFFEAF4F1),
-        resizeToAvoidBottomInset: true,
-        body: GlassBackdrop(
-          child: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  physics: const ClampingScrollPhysics(),
-                  keyboardDismissBehavior:
-                      ScrollViewKeyboardDismissBehavior.onDrag,
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: IntrinsicHeight(
-                      child: Column(
-                        children: [
-                          const Spacer(flex: 2),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                            ),
+    return Selector<AuthProvider, AuthFlowStep>(
+      selector: (_, auth) => auth.step,
+      builder: (context, step, _) {
+        final onPin = step == AuthFlowStep.pin;
+
+        // System back on the PIN step returns to the mobile step.
+        return PopScope(
+          canPop: !onPin,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) context.read<AuthProvider>().backToPhone();
+          },
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () => FocusScope.of(context).unfocus(),
+            child: Scaffold(
+              backgroundColor: const Color(0xFFEAF4F1),
+              resizeToAvoidBottomInset: true,
+              body: GlassBackdrop(
+                child: SafeArea(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        physics: const ClampingScrollPhysics(),
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: IntrinsicHeight(
                             child: Column(
                               children: [
-                                const FadeSlideIn(child: AuthHeader()),
-                                const SizedBox(height: 22),
-                                const FadeSlideIn(
-                                  delay: Duration(milliseconds: 120),
-                                  child: AuthStepper(step: 1),
-                                ),
-                                const SizedBox(height: 22),
-                                FadeSlideIn(
-                                  delay: const Duration(milliseconds: 220),
-                                  child: GlassCard(
-                                    padding: const EdgeInsets.all(20),
-                                    child: Column(
-                                      children: [
-                                        PhoneNumberField(focusNode: _phoneFocus),
-                                        const SizedBox(height: 18),
-                                        const AuthContinueButton(),
-                                      ],
+                                Expanded(
+                                  child: AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 350),
+                                    switchInCurve: Curves.easeOutCubic,
+                                    switchOutCurve: Curves.easeInCubic,
+                                    layoutBuilder: (current, previous) => Stack(
+                                      fit: StackFit.expand,
+                                      children: [...previous, ?current],
                                     ),
+                                    transitionBuilder: (child, anim) =>
+                                        FadeTransition(
+                                      opacity: anim,
+                                      child: SlideTransition(
+                                        position: Tween<Offset>(
+                                          begin: const Offset(0.06, 0),
+                                          end: Offset.zero,
+                                        ).animate(anim),
+                                        child: child,
+                                      ),
+                                    ),
+                                    child: onPin
+                                        ? const PinStep(key: ValueKey('pin'))
+                                        : const PhoneStep(
+                                            key: ValueKey('phone'),
+                                          ),
                                   ),
-                                ),
-                                const SizedBox(height: 16),
-                                const FadeSlideIn(
-                                  delay: Duration(milliseconds: 320),
-                                  child: AuthTerms(),
                                 ),
                               ],
                             ),
                           ),
-                          const Spacer(flex: 3),
-                          const FadeSlideIn(
-                            delay: Duration(milliseconds: 420),
-                            child: AuthFooter(),
-                          ),
-                        ],
-                      ),
-                    ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
+                ),
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

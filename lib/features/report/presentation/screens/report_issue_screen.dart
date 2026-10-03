@@ -16,7 +16,6 @@ class ReportResult {
   final String issue;
   final String note;
   final String? photoPath;
-  final String location;
   final ReportVisibility visibility;
   final String refId;
 
@@ -26,7 +25,6 @@ class ReportResult {
     required this.issue,
     required this.note,
     required this.photoPath,
-    required this.location,
     required this.visibility,
     required this.refId,
   });
@@ -127,17 +125,6 @@ const List<_Category> _categories = [
   ),
 ];
 
-const List<String> _mockUnits = [
-  'Flat 201',
-  'Flat 202',
-  'Flat 203',
-  'Flat 301',
-  'Flat 302',
-  'Flat 303',
-];
-
-const String _mockTower = 'Tower A';
-
 // ---------------------------------------------------------------
 // Report an Issue (embedded in Home as a tab)
 // Steps: 1 Category -> 2 Details -> 3 Review, visibility & submit -> Success
@@ -175,7 +162,6 @@ class ReportIssueViewState extends State<ReportIssueView> {
   int _step = 0; // 0 category, 1 details, 2 review
   _Category? _category;
   String? _issue;
-  String _unit = _mockUnits.first;
 
   final ImagePicker _picker = ImagePicker();
   XFile? _photo;
@@ -273,13 +259,13 @@ class ReportIssueViewState extends State<ReportIssueView> {
       _isSubmitting = false;
       _submitted = true;
       _refId = '#RPT-${1000 + DateTime.now().millisecondsSinceEpoch % 9000}';
+
       _result = ReportResult(
         category: _category!.label,
         icon: _category!.icon,
         issue: _isCustom ? 'Custom report' : _issue!,
         note: _noteController.text.trim(),
         photoPath: _photo?.path,
-        location: '$_unit · $_mockTower',
         visibility: _visibility,
         refId: _refId,
       );
@@ -317,70 +303,6 @@ class ReportIssueViewState extends State<ReportIssueView> {
         ),
       ),
     );
-  }
-
-  Future<void> _pickUnit() async {
-    FocusScope.of(context).unfocus();
-
-    final picked = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      barrierColor: Colors.black.withValues(alpha: 0.25),
-      builder: (sheetContext) {
-        return _glassSheet(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(sheetContext).size.height * 0.5,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(20, 0, 20, 8),
-                  child: Text(
-                    'Select flat / room',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.title,
-                    ),
-                  ),
-                ),
-                Flexible(
-                  child: ListView(
-                    shrinkWrap: true,
-                    children: [
-                      for (final unit in _mockUnits)
-                        ListTile(
-                          onTap: () => Navigator.pop(sheetContext, unit),
-                          title: Text(
-                            '$unit · $_mockTower',
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.title,
-                            ),
-                          ),
-                          trailing: unit == _unit
-                              ? const Icon(
-                                  Icons.check_circle_rounded,
-                                  color: AppColors.brand,
-                                )
-                              : null,
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-
-    if (picked != null && mounted) setState(() => _unit = picked);
   }
 
   Future<void> _showPhotoSourceSheet() async {
@@ -803,10 +725,6 @@ class ReportIssueViewState extends State<ReportIssueView> {
           _buildLabel('Add a photo (optional)'),
           const SizedBox(height: 8),
           _buildPhotoPicker(),
-          const SizedBox(height: 20),
-          _buildLabel('Location'),
-          const SizedBox(height: 8),
-          _buildUnitTile(),
         ],
       ),
     );
@@ -1065,48 +983,6 @@ class ReportIssueViewState extends State<ReportIssueView> {
     );
   }
 
-  Widget _buildUnitTile() {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: _pickUnit,
-      child: Glass(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        radius: BorderRadius.circular(14),
-        blur: 0,
-        opacity: 0.55,
-        shadow: false,
-        child: Row(
-          children: [
-            const Icon(
-              Icons.location_on_outlined,
-              color: AppColors.brand,
-              size: 22,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                '$_unit · $_mockTower',
-                style: const TextStyle(
-                  fontSize: 14.5,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.title,
-                ),
-              ),
-            ),
-            const Text(
-              'Change',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.brand,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   // ---------------------------------------------------------------
   // Step 3: review, choose who can see it, submit
   // ---------------------------------------------------------------
@@ -1155,7 +1031,6 @@ class ReportIssueViewState extends State<ReportIssueView> {
                 _buildDivider(),
                 _buildReviewRow('Issue', _isCustom ? 'Custom report' : _issue!),
                 _buildDivider(),
-                _buildReviewRow('Location', '$_unit · $_mockTower'),
                 if (note.isNotEmpty) ...[
                   _buildDivider(),
                   _buildReviewRow(_isCustom ? 'Description' : 'Note', note),
@@ -1259,9 +1134,7 @@ class ReportIssueViewState extends State<ReportIssueView> {
           tint: selected
               ? Color.alphaBlend(color.withValues(alpha: 0.18), Colors.white)
               : Colors.white,
-          borderColor: selected
-              ? color
-              : Colors.white.withValues(alpha: 0.85),
+          borderColor: selected ? color : Colors.white.withValues(alpha: 0.85),
           shadow: false,
           child: Row(
             children: [

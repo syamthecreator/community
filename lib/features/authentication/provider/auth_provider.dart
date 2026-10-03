@@ -6,6 +6,9 @@ import 'package:flutter/services.dart';
 
 enum AuthValidationError { empty, invalidLength, invalidNumber, notRegistered }
 
+// NEW
+enum AuthFlowStep { phone, pin }
+
 class AuthProvider extends ChangeNotifier {
   static const int pinLength = 4;
   static const int maxPinAttempts = 5;
@@ -16,6 +19,10 @@ class AuthProvider extends ChangeNotifier {
 
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController pinController = TextEditingController();
+
+  // Flow state (NEW)
+  AuthFlowStep _step = AuthFlowStep.phone;
+  bool _isPhoneVerified = false;
 
   // Phone state
   AuthValidationError? _validationError;
@@ -39,6 +46,9 @@ class AuthProvider extends ChangeNotifier {
   // ---------------------------------------------------------------
   // Getters
   // ---------------------------------------------------------------
+
+  AuthFlowStep get step => _step; // NEW
+  bool get isPhoneVerified => _isPhoneVerified; // NEW
 
   AuthValidationError? get validationError => _validationError;
   bool get isLoading => _isLoading;
@@ -98,8 +108,9 @@ class AuthProvider extends ChangeNotifier {
   // Replace with a real lookup: is this number registered by an admin?
   Future<bool> _isRegistered(String phone) async => true;
 
+  // CHANGED: no Navigator.push. Shows loader -> tick -> swaps to PIN step.
   Future<void> continueAuth(BuildContext context) async {
-    if (_isLoading) return;
+    if (_isLoading || _isPhoneVerified) return;
 
     FocusScope.of(context).unfocus();
     if (!validatePhone()) return;
@@ -113,17 +124,40 @@ class AuthProvider extends ChangeNotifier {
       if (!registered) {
         _validationError = AuthValidationError.notRegistered;
         _phoneErrorTick++;
+        return; // finally clears the loader
+      }
+
+      // Registered: loader -> tick on the button.
+      HapticFeedback.lightImpact();
+      _isLoading = false;
+      _isPhoneVerified = true;
+      notifyListeners();
+
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+
+      if (!context.mounted) {
+        _isPhoneVerified = false;
         return;
       }
 
-      if (!context.mounted) return;
-      // Not awaited, so the button never stays in a loading state
-      // while the PIN screen is open.
-      Navigator.pushNamed(context, AppRouter.otp, arguments: phoneNumber);
+      // Swap the content in place. No route change.
+      _isPhoneVerified = false;
+      _step = AuthFlowStep.pin;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  // NEW: used by the "Change" chip, back button and system back.
+  void backToPhone() {
+    pinController.clear(); // fires the listener, so set flags after this
+    _pinWrong = false;
+    _isVerifying = false;
+    _pinVerified = false;
+    _isPhoneVerified = false;
+    _step = AuthFlowStep.phone;
+    notifyListeners();
   }
 
   // ---------------------------------------------------------------
@@ -135,7 +169,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Call when the PIN screen opens. Keeps an active lockout running.
+  /// Call when the PIN step opens. Keeps an active lockout running.
   void initializePin() {
     pinController.clear();
     _pinWrong = false;
@@ -152,8 +186,7 @@ class AuthProvider extends ChangeNotifier {
     _isVerifying = true;
     notifyListeners();
 
-    // Replace with the real PIN check. The short wait gives the loader
-    // time to be seen and avoids an instant, jarring jump.
+    // Replace with the real PIN check.
     await Future<void>.delayed(const Duration(milliseconds: 600));
 
     if (code != mockPin) {

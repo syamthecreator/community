@@ -8,10 +8,8 @@ import 'package:image_picker/image_picker.dart';
 
 // Mock data. These details are set by the admin and are read-only here.
 const String _mockUserName = 'Nithya Arun';
-const String _mockRole = 'Resident';
+const String _mockRole = 'Community Member';
 const String _mockCommunity = 'Green Valley Apartments';
-const String _mockFlat = '201';
-const String _mockTower = 'Tower A';
 const String _mockPhone = '+91 98765 43210';
 
 /// Profile: details are managed by the admin (read-only).
@@ -407,18 +405,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             icon: Icons.apartment_rounded,
             label: 'Community',
             value: _mockCommunity,
-          ),
-          divider,
-          const _DetailRow(
-            icon: Icons.door_front_door_outlined,
-            label: 'Flat / Room',
-            value: _mockFlat,
-          ),
-          divider,
-          const _DetailRow(
-            icon: Icons.domain_outlined,
-            label: 'Building / Tower',
-            value: _mockTower,
           ),
           divider,
           const _DetailRow(
