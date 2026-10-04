@@ -1,7 +1,7 @@
 import 'package:community/core/constants/asset_constants.dart';
 import 'package:community/core/theme/app_colors.dart';
 import 'package:community/core/widgets/app_back_button.dart';
-import 'package:community/core/widgets/glass.dart';
+import 'package:community/core/widgets/glass_morphism.dart';
 import 'package:community/core/widgets/motion.dart';
 import 'package:community/features/authentication/presentation/widgets/auth_step.dart';
 import 'package:community/features/authentication/provider/auth_provider.dart';
@@ -40,13 +40,12 @@ class _VerficationScreenState extends State<VerficationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Empty-space taps dismiss the keyboard; PIN boxes and buttons consume
-    // their own taps. Tapping the PIN boxes brings the keyboard back.
+  
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: const Color(0xFFEAF4F1),
+        backgroundColor: AppColors.background,
         resizeToAvoidBottomInset: true,
         body: GlassBackdrop(
           child: SafeArea(
@@ -123,9 +122,6 @@ class _VerficationScreenState extends State<VerficationScreen> {
   }
 }
 
-// -----------------------------------------------------------------------------
-// Widget functions (previously separate classes)
-// -----------------------------------------------------------------------------
 
 String _formatPhone(String phoneNumber) => phoneNumber.length == 10
     ? '+91 ${phoneNumber.substring(0, 5)} ${phoneNumber.substring(5)}'
@@ -159,15 +155,14 @@ Widget pinHeader(BuildContext context, {required String phoneNumber}) {
         ),
       ),
       const SizedBox(height: 14),
-      // Shows which number is being used, with a quick way to change it.
       GestureDetector(
         onTap: () => context.read<AuthProvider>().backToPhone(),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.7),
+            color: AppColors.kwhite.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
+            border: Border.all(color: AppColors.kwhite.withValues(alpha: 0.9)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -209,7 +204,6 @@ Widget pinHeader(BuildContext context, {required String phoneNumber}) {
   );
 }
 
-/// Was: PinInput
 Widget pinInput({
   required FocusNode focusNode,
   required bool obscure,
@@ -227,15 +221,11 @@ Widget pinInput({
                 '${auth.attemptsLeft == 1 ? 'attempt' : 'attempts'} left.'
           : null;
 
-      // Rebuild on focus / text change so the active box highlights.
       return ListenableBuilder(
         listenable: Listenable.merge([focusNode, auth.pinController]),
         builder: (context, _) {
           final text = auth.pinController.text;
-          final activeIndex = text.length.clamp(
-            0,
-            AuthProvider.pinLength - 1,
-          );
+          final activeIndex = text.length.clamp(0, AuthProvider.pinLength - 1);
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -385,9 +375,7 @@ Widget pinInput({
                             style: TextStyle(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.brandDark.withValues(
-                                alpha: 0.8,
-                              ),
+                              color: AppColors.brandDark.withValues(alpha: 0.8),
                             ),
                           ),
                         ],
@@ -404,7 +392,6 @@ Widget pinInput({
   );
 }
 
-/// Was: _PinBox
 Widget _pinBox({
   required String? char,
   required bool active,
@@ -415,7 +402,7 @@ Widget _pinBox({
   final accent = hasError ? AppColors.error : AppColors.brand;
   final borderColor = hasError || active || filled
       ? accent
-      : Colors.white.withValues(alpha: 0.9);
+      : AppColors.kwhite.withValues(alpha: 0.9);
 
   return AnimatedContainer(
     duration: const Duration(milliseconds: 150),
@@ -430,8 +417,8 @@ Widget _pinBox({
                 AppColors.brand.withValues(alpha: 0.10),
               ]
             : [
-                Colors.white.withValues(alpha: 0.85),
-                Colors.white.withValues(alpha: 0.55),
+                AppColors.kwhite.withValues(alpha: 0.85),
+                AppColors.kwhite.withValues(alpha: 0.55),
               ],
       ),
       borderRadius: BorderRadius.circular(16),
@@ -488,7 +475,6 @@ Widget _pinBox({
   );
 }
 
-/// Was: PinVerifyButton
 Widget pinVerifyButton() {
   return Consumer<AuthProvider>(
     builder: (context, auth, _) {
@@ -504,7 +490,7 @@ Widget pinVerifyButton() {
               ? const Icon(
                   Icons.check_rounded,
                   key: ValueKey('done'),
-                  color: Colors.white,
+                  color: AppColors.kwhite,
                   size: 26,
                 )
               : auth.isVerifying
@@ -514,7 +500,7 @@ Widget pinVerifyButton() {
                   height: 22,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.4,
-                    color: Colors.white,
+                    color: AppColors.kwhite,
                   ),
                 )
               : const Text('Verify & Continue', key: ValueKey('label')),
@@ -524,8 +510,6 @@ Widget pinVerifyButton() {
   );
 }
 
-/// Explains where the PIN comes from, so members know what to do if stuck.
-/// Was: PinHelp
 Widget pinHelp() {
   return Container(
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -535,11 +519,7 @@ Widget pinHelp() {
     ),
     child: const Row(
       children: [
-        Icon(
-          Icons.support_agent_rounded,
-          size: 22,
-          color: AppColors.brandDark,
-        ),
+        Icon(Icons.support_agent_rounded, size: 22, color: AppColors.brandDark),
         SizedBox(width: 12),
         Expanded(
           child: Column(

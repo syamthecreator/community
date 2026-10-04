@@ -1,13 +1,10 @@
 import 'dart:io';
 
 import 'package:community/core/theme/app_colors.dart';
-import 'package:community/core/widgets/glass.dart';
+import 'package:community/core/widgets/glass_morphism.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-// ---------------------------------------------------------------
-// Result sent to Home when a report is submitted.
-// ---------------------------------------------------------------
 enum ReportVisibility { adminOnly, everyone }
 
 class ReportResult {
@@ -30,10 +27,6 @@ class ReportResult {
   });
 }
 
-// ---------------------------------------------------------------
-// Mock data. In the real app these come from the association's
-// setup, because each community configures its own options.
-// ---------------------------------------------------------------
 class _Category {
   final String label;
   final IconData icon;
@@ -125,21 +118,10 @@ const List<_Category> _categories = [
   ),
 ];
 
-// ---------------------------------------------------------------
-// Report an Issue (embedded in Home as a tab)
-// Steps: 1 Category -> 2 Details -> 3 Review, visibility & submit -> Success
-//
-// This is a plain widget: no Scaffold, SafeArea or background.
-// Home provides the header, background and bottom nav.
-// ---------------------------------------------------------------
+
 class ReportIssueView extends StatefulWidget {
-  /// Opens straight on the custom report form.
   final bool startWithCustom;
-
-  /// Called as soon as a report is submitted (Home adds it to the feed).
   final ValueChanged<ReportResult> onSubmitted;
-
-  /// Called when the user leaves the report tab (back on step 1 / Back to Home).
   final VoidCallback onExit;
 
   const ReportIssueView({
@@ -158,17 +140,13 @@ class ReportIssueViewState extends State<ReportIssueView> {
   static const int _minCustomLength = 10;
 
   final TextEditingController _noteController = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
 
-  int _step = 0; // 0 category, 1 details, 2 review
+  int _step = 0; 
   _Category? _category;
   String? _issue;
-
-  final ImagePicker _picker = ImagePicker();
   XFile? _photo;
-
-  // Defaults to the privacy-safe option.
   ReportVisibility _visibility = ReportVisibility.adminOnly;
-
   bool _isSubmitting = false;
   bool _submitted = false;
   String _refId = '';
@@ -198,10 +176,6 @@ class ReportIssueViewState extends State<ReportIssueView> {
     return _issue != null;
   }
 
-  // ------------------------- actions -------------------------
-
-  /// Returns true if it handled the back press itself.
-  /// Home calls this from the system back button.
   bool handleBack() {
     if (_submitted) {
       widget.onExit();
@@ -226,7 +200,6 @@ class ReportIssueViewState extends State<ReportIssueView> {
       _category = category;
     });
 
-    // Short pause so the selection is visible, then move on.
     Future.delayed(const Duration(milliseconds: 180), () {
       if (mounted && _step == 0) setState(() => _step = 1);
     });
@@ -274,7 +247,6 @@ class ReportIssueViewState extends State<ReportIssueView> {
     widget.onSubmitted(_result!);
   }
 
-  // Shared glass wrapper for bottom sheets.
   Widget _glassSheet({required Widget child}) {
     return Glass(
       radius: const BorderRadius.vertical(top: Radius.circular(30)),
@@ -312,7 +284,7 @@ class ReportIssueViewState extends State<ReportIssueView> {
       context: context,
       backgroundColor: Colors.transparent,
       elevation: 0,
-      barrierColor: Colors.black.withValues(alpha: 0.25),
+      barrierColor: AppColors.kblack.withValues(alpha: 0.25),
       builder: (sheetContext) {
         return _glassSheet(
           child: Column(
@@ -374,7 +346,6 @@ class ReportIssueViewState extends State<ReportIssueView> {
     }
   }
 
-  // ------------------------- build -------------------------
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -422,9 +393,7 @@ class ReportIssueViewState extends State<ReportIssueView> {
     }
   }
 
-  // ---------------------------------------------------------------
-  // Header: back button, title, step progress
-  // ---------------------------------------------------------------
+
   Widget _buildHeader() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 20, 0),
@@ -498,7 +467,7 @@ class ReportIssueViewState extends State<ReportIssueView> {
                       decoration: BoxDecoration(
                         color: i <= _step
                             ? AppColors.brand
-                            : Colors.white.withValues(alpha: 0.6),
+                            : AppColors.kwhite.withValues(alpha: 0.6),
                         borderRadius: BorderRadius.circular(4),
                         boxShadow: i <= _step
                             ? [
@@ -522,9 +491,6 @@ class ReportIssueViewState extends State<ReportIssueView> {
     );
   }
 
-  // ---------------------------------------------------------------
-  // Step 1: choose a category
-  // ---------------------------------------------------------------
   Widget _buildCategoryStep() {
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
@@ -567,7 +533,7 @@ class ReportIssueViewState extends State<ReportIssueView> {
             opacity: 0.45,
             tint: Color.alphaBlend(
               AppColors.brand.withValues(alpha: 0.25),
-              Colors.white,
+              AppColors.kwhite,
             ),
             borderColor: AppColors.brand.withValues(alpha: 0.30),
             shadow: false,
@@ -628,7 +594,7 @@ class ReportIssueViewState extends State<ReportIssueView> {
         opacity: selected ? 0.70 : 0.55,
         tint: Color.alphaBlend(
           color.withValues(alpha: selected ? 0.22 : 0.08),
-          Colors.white,
+          AppColors.kwhite,
         ),
         borderColor: selected ? color : color.withValues(alpha: 0.30),
         shadow: false,
@@ -641,7 +607,7 @@ class ReportIssueViewState extends State<ReportIssueView> {
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.16),
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withValues(alpha: 0.7)),
+                border: Border.all(color: AppColors.kwhite.withValues(alpha: 0.7)),
               ),
               child: Icon(category.icon, color: color, size: 24),
             ),
@@ -665,9 +631,7 @@ class ReportIssueViewState extends State<ReportIssueView> {
     );
   }
 
-  // ---------------------------------------------------------------
-  // Step 2: pick the issue, add a note, choose the flat
-  // ---------------------------------------------------------------
+ 
   Widget _buildDetailsStep() {
     final category = _category!;
 
@@ -742,7 +706,7 @@ class ReportIssueViewState extends State<ReportIssueView> {
           opacity: 0.50,
           tint: Color.alphaBlend(
             AppColors.brand.withValues(alpha: 0.20),
-            Colors.white,
+            AppColors.kwhite,
           ),
           borderColor: AppColors.brand.withValues(alpha: 0.30),
           shadow: false,
@@ -789,12 +753,12 @@ class ReportIssueViewState extends State<ReportIssueView> {
         tint: selected
             ? Color.alphaBlend(
                 AppColors.brand.withValues(alpha: 0.18),
-                Colors.white,
+                AppColors.kwhite,
               )
-            : Colors.white,
+            : AppColors.kwhite,
         borderColor: selected
             ? AppColors.brand
-            : Colors.white.withValues(alpha: 0.85),
+            : AppColors.kwhite.withValues(alpha: 0.85),
         shadow: false,
         child: Row(
           children: [
@@ -816,7 +780,7 @@ class ReportIssueViewState extends State<ReportIssueView> {
                 shape: BoxShape.circle,
                 color: selected
                     ? AppColors.brand
-                    : Colors.white.withValues(alpha: 0.7),
+                    : AppColors.kwhite.withValues(alpha: 0.7),
                 border: Border.all(
                   color: selected ? AppColors.brand : AppColors.border,
                   width: 1.4,
@@ -826,7 +790,7 @@ class ReportIssueViewState extends State<ReportIssueView> {
                   ? const Icon(
                       Icons.check_rounded,
                       size: 15,
-                      color: Colors.white,
+                      color: AppColors.kwhite,
                     )
                   : null,
             ),
@@ -877,15 +841,15 @@ class ReportIssueViewState extends State<ReportIssueView> {
         ),
         decoration: InputDecoration(
           filled: true,
-          fillColor: Colors.white.withValues(alpha: 0.55),
+          fillColor: AppColors.kwhite.withValues(alpha: 0.55),
           hintText: hint,
           hintStyle: const TextStyle(fontSize: 14, color: AppColors.hint),
           helperText: helper,
           helperStyle: const TextStyle(fontSize: 12, color: AppColors.body),
           counterStyle: const TextStyle(fontSize: 12, color: AppColors.hint),
           contentPadding: const EdgeInsets.all(14),
-          border: border(Colors.white.withValues(alpha: 0.85), 1.2),
-          enabledBorder: border(Colors.white.withValues(alpha: 0.85), 1.2),
+          border: border(AppColors.kwhite.withValues(alpha: 0.85), 1.2),
+          enabledBorder: border(AppColors.kwhite.withValues(alpha: 0.85), 1.2),
           focusedBorder: border(AppColors.brand, 1.6),
         ),
       ),
@@ -904,7 +868,7 @@ class ReportIssueViewState extends State<ReportIssueView> {
           opacity: 0.45,
           tint: Color.alphaBlend(
             AppColors.brand.withValues(alpha: 0.12),
-            Colors.white,
+            AppColors.kwhite,
           ),
           borderColor: AppColors.brand.withValues(alpha: 0.35),
           shadow: false,
@@ -938,7 +902,7 @@ class ReportIssueViewState extends State<ReportIssueView> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.85),
+              color: AppColors.kwhite.withValues(alpha: 0.85),
               width: 1.2,
             ),
           ),
@@ -974,18 +938,15 @@ class ReportIssueViewState extends State<ReportIssueView> {
         radius: BorderRadius.circular(20),
         blur: 12,
         opacity: 0.35,
-        tint: Colors.black,
-        borderColor: Colors.white.withValues(alpha: 0.5),
+        tint: AppColors.kblack,
+        borderColor: AppColors.kwhite.withValues(alpha: 0.5),
         shadow: false,
         padding: const EdgeInsets.all(8),
-        child: Icon(icon, size: 18, color: Colors.white),
+        child: Icon(icon, size: 18, color: AppColors.kwhite),
       ),
     );
   }
 
-  // ---------------------------------------------------------------
-  // Step 3: review, choose who can see it, submit
-  // ---------------------------------------------------------------
   Widget _buildReviewStep() {
     final category = _category!;
     final note = _noteController.text.trim();
@@ -1078,7 +1039,7 @@ class ReportIssueViewState extends State<ReportIssueView> {
             opacity: 0.45,
             tint: Color.alphaBlend(
               AppColors.brand.withValues(alpha: 0.25),
-              Colors.white,
+              AppColors.kwhite,
             ),
             borderColor: AppColors.brand.withValues(alpha: 0.30),
             shadow: false,
@@ -1132,9 +1093,9 @@ class ReportIssueViewState extends State<ReportIssueView> {
           blur: 0,
           opacity: selected ? 0.70 : 0.55,
           tint: selected
-              ? Color.alphaBlend(color.withValues(alpha: 0.18), Colors.white)
-              : Colors.white,
-          borderColor: selected ? color : Colors.white.withValues(alpha: 0.85),
+              ? Color.alphaBlend(color.withValues(alpha: 0.18), AppColors.kwhite)
+              : AppColors.kwhite,
+          borderColor: selected ? color : AppColors.kwhite.withValues(alpha: 0.85),
           shadow: false,
           child: Row(
             children: [
@@ -1145,7 +1106,7 @@ class ReportIssueViewState extends State<ReportIssueView> {
                   color: color.withValues(alpha: 0.14),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.7),
+                    color: AppColors.kwhite.withValues(alpha: 0.7),
                   ),
                 ),
                 child: Icon(icon, color: color, size: 20),
@@ -1257,9 +1218,7 @@ class ReportIssueViewState extends State<ReportIssueView> {
     return Divider(height: 1, color: AppColors.border.withValues(alpha: 0.25));
   }
 
-  // ---------------------------------------------------------------
-  // Success state
-  // ---------------------------------------------------------------
+
   Widget _buildSuccess() {
     final adminOnly = _visibility == ReportVisibility.adminOnly;
 
@@ -1346,9 +1305,6 @@ class ReportIssueViewState extends State<ReportIssueView> {
     );
   }
 
-  // ---------------------------------------------------------------
-  // Bottom action bar
-  // ---------------------------------------------------------------
   Widget _buildBottomBar() {
     if (_submitted) {
       return _bottomBarShell(
@@ -1382,7 +1338,7 @@ class ReportIssueViewState extends State<ReportIssueView> {
       radius: const BorderRadius.vertical(top: Radius.circular(24)),
       blur: 24,
       opacity: 0.60,
-      tint: const Color(0xFFF1FBF8),
+      tint: AppColors.headerTint,
       shadow: false,
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
       child: child,
@@ -1390,10 +1346,6 @@ class ReportIssueViewState extends State<ReportIssueView> {
   }
 }
 
-// ---------------------------------------------------------------
-// Primary button (same look as the login screens)
-// Was: _PrimaryButton
-// ---------------------------------------------------------------
 Widget _primaryButton({
   required String label,
   required VoidCallback? onPressed,
@@ -1406,9 +1358,9 @@ Widget _primaryButton({
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.brand,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.kwhite,
         disabledBackgroundColor: AppColors.disabled,
-        disabledForegroundColor: Colors.white,
+        disabledForegroundColor: AppColors.kwhite,
         elevation: 0,
         padding: EdgeInsets.zero,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -1422,7 +1374,7 @@ Widget _primaryButton({
                 height: 22,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.4,
-                  color: Colors.white,
+                  color: AppColors.kwhite,
                 ),
               )
             : Text(

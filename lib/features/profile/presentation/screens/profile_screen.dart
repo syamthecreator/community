@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:community/core/constants/asset_constants.dart';
 import 'package:community/core/theme/app_colors.dart';
-import 'package:community/core/widgets/glass.dart';
+import 'package:community/core/widgets/glass_morphism.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -13,8 +13,6 @@ const String _mockCommunity = 'Green Valley Apartments';
 const String _mockRoom = '201';
 const String _mockPhone = '+91 98765 43210';
 
-/// Profile: details are managed by the admin (read-only).
-/// The member can only add, update or delete their profile picture.
 class ProfileScreen extends StatefulWidget {
   final VoidCallback? onBack;
 
@@ -27,7 +25,6 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final ImagePicker _picker = ImagePicker();
 
-  // Local path for now. Replace with the uploaded URL from the API later.
   String? _photoPath;
 
   String get _initials {
@@ -37,7 +34,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return (first + last).toUpperCase();
   }
 
-  // ------------------------- photo actions -------------------------
   Future<void> _pickPhoto(ImageSource source) async {
     try {
       final file = await _picker.pickImage(
@@ -65,7 +61,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       elevation: 0,
-      barrierColor: Colors.black.withValues(alpha: 0.25),
+      barrierColor: AppColors.kblack.withValues(alpha: 0.25),
       builder: (sheetContext) {
         Widget option(
           IconData icon,
@@ -126,18 +122,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
       useSafeArea: true,
       backgroundColor: Colors.transparent,
       elevation: 0,
-      barrierColor: Colors.black.withValues(alpha: 0.25),
+      barrierColor: AppColors.kblack.withValues(alpha: 0.25),
       builder: (_) => _glassSheet(child: _helpContent()),
     );
   }
 
-  // ------------------------- build -------------------------
   @override
   Widget build(BuildContext context) {
     return Stack(
       fit: StackFit.expand,
       children: [
-        // Glass backdrop: same as Home.
         const Positioned.fill(
           child: DecoratedBox(
             decoration: BoxDecoration(
@@ -259,9 +253,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // ---------------------------------------------------------------
-  // Avatar (tap to add / update / remove), name and role
-  // ---------------------------------------------------------------
   Widget _buildProfileCard() {
     return Glass(
       padding: const EdgeInsets.all(16),
@@ -286,7 +277,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       color: AppColors.brand.withValues(alpha: 0.14),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.85),
+                        color: AppColors.kwhite.withValues(alpha: 0.85),
                         width: 2,
                       ),
                       boxShadow: [
@@ -325,12 +316,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           end: Alignment.bottomRight,
                         ),
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
+                        border: Border.all(color: AppColors.kwhite, width: 2),
                       ),
                       child: const Icon(
                         Icons.photo_camera_rounded,
                         size: 13,
-                        color: Colors.white,
+                        color: AppColors.kwhite,
                       ),
                     ),
                   ),
@@ -365,7 +356,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   opacity: 0.50,
                   tint: Color.alphaBlend(
                     AppColors.brand.withValues(alpha: 0.20),
-                    Colors.white,
+                    AppColors.kwhite,
                   ),
                   borderColor: AppColors.brand.withValues(alpha: 0.30),
                   shadow: false,
@@ -386,9 +377,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // ---------------------------------------------------------------
-  // Community, room and mobile details (read-only, added by admin)
-  // ---------------------------------------------------------------
   Widget _buildDetailsCard() {
     final divider = Divider(
       height: 1,
@@ -432,7 +420,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       opacity: 0.45,
       tint: Color.alphaBlend(
         AppColors.violet.withValues(alpha: 0.20),
-        Colors.white,
+        AppColors.kwhite,
       ),
       borderColor: AppColors.violet.withValues(alpha: 0.30),
       shadow: false,
@@ -458,9 +446,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // ---------------------------------------------------------------
-  // Help & Support
-  // ---------------------------------------------------------------
   Widget _buildMenuCard() {
     return Glass(
       blur: 0,
@@ -475,10 +460,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-// ---------------------------------------------------------------
-// Glass bottom sheet shell (drag handle drawn inside the glass)
-// Was: _GlassSheet
-// ---------------------------------------------------------------
 Widget _glassSheet({required Widget child}) {
   return Glass(
     radius: const BorderRadius.vertical(top: Radius.circular(30)),
@@ -509,9 +490,6 @@ Widget _glassSheet({required Widget child}) {
   );
 }
 
-// ---------------------------------------------------------------
-// Small reusable pieces
-// ---------------------------------------------------------------
 
 /// Was: _DetailRow
 Widget _detailRow({
@@ -529,7 +507,7 @@ Widget _detailRow({
           decoration: BoxDecoration(
             color: AppColors.brand.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.7)),
+            border: Border.all(color: AppColors.kwhite.withValues(alpha: 0.7)),
           ),
           child: Icon(icon, size: 19, color: AppColors.brand),
         ),
@@ -593,9 +571,7 @@ Widget _menuRow({
   );
 }
 
-// ---------------------------------------------------------------
-// Help & Support content: who to contact
-// ---------------------------------------------------------------
+
 const List<({IconData icon, String name, String role, String phone})>
 _helpContacts = [
   (
@@ -669,7 +645,7 @@ Widget _helpContent() {
                           color: AppColors.brand.withValues(alpha: 0.12),
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.7),
+                            color: AppColors.kwhite.withValues(alpha: 0.7),
                           ),
                         ),
                         child: Icon(

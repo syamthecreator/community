@@ -5,11 +5,6 @@ import 'package:community/core/constants/asset_constants.dart';
 import 'package:community/core/theme/app_colors.dart';
 import 'package:flutter/services.dart';
 
-/// Frosted-glass surface: blurred backdrop + translucent gradient fill +
-/// bright hairline border + soft shadow.
-///
-/// Set [blur] to 0 for cheap "flat glass" (no BackdropFilter). Use that for
-/// anything repeated inside a long scrolling list.
 class Glass extends StatelessWidget {
   const Glass({
     super.key,
@@ -38,8 +33,7 @@ class Glass extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final base = tint ?? Colors.white;
-
+    final base = tint ?? AppColors.kwhite;
     final surface = Container(
       padding: padding,
       decoration: BoxDecoration(
@@ -53,7 +47,8 @@ class Glass extends StatelessWidget {
           ],
         ),
         border: Border.all(
-          color: borderColor ?? Colors.white.withValues(alpha: borderOpacity),
+          color:
+              borderColor ?? AppColors.kwhite.withValues(alpha: borderOpacity),
           width: 1.2,
         ),
       ),
@@ -67,7 +62,7 @@ class Glass extends StatelessWidget {
         boxShadow: shadow
             ? [
                 BoxShadow(
-                  color: const Color(0xFF1B5E52).withValues(alpha: 0.10),
+                  color: AppColors.glassShadow.withValues(alpha: 0.10),
                   blurRadius: 24,
                   offset: const Offset(0, 8),
                 ),
@@ -118,11 +113,6 @@ class GlassBlob extends StatelessWidget {
   }
 }
 
-
-
-
-
-/// Focus the field, or re-open the keyboard if it already has focus but the
 void focusAndShowKeyboard(FocusNode node) {
   if (node.hasFocus) {
     SystemChannels.textInput.invokeMethod('TextInput.show');
@@ -131,7 +121,6 @@ void focusAndShowKeyboard(FocusNode node) {
   }
 }
 
-/// Same frosted-glass look as the Home screen.
 class GlassCard extends StatelessWidget {
   const GlassCard({
     super.key,
@@ -167,14 +156,16 @@ class GlassCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white.withValues(alpha: (opacity * 1.15).clamp(0.0, 1.0)),
-            Colors.white.withValues(alpha: opacity * 0.70),
-            Colors.white.withValues(alpha: opacity * 0.50),
+            AppColors.kwhite.withValues(
+              alpha: (opacity * 1.15).clamp(0.0, 1.0),
+            ),
+            AppColors.kwhite.withValues(alpha: opacity * 0.70),
+            AppColors.kwhite.withValues(alpha: opacity * 0.50),
           ],
           stops: const [0.0, 0.5, 1.0],
         ),
         border: Border.all(
-          color: borderColor ?? Colors.white.withValues(alpha: 0.8),
+          color: borderColor ?? AppColors.kwhite.withValues(alpha: 0.8),
           width: 1.2,
         ),
       ),
@@ -188,7 +179,7 @@ class GlassCard extends StatelessWidget {
         boxShadow: shadow
             ? [
                 BoxShadow(
-                  color: (glowColor ?? const Color(0xFF1B5E52)).withValues(
+                  color: (glowColor ?? AppColors.glassShadow).withValues(
                     alpha: glowColor == null ? 0.10 : 0.28,
                   ),
                   blurRadius: 24,
@@ -210,7 +201,6 @@ class GlassCard extends StatelessWidget {
   }
 }
 
-/// Gradient + image + soft colour blobs, so the glass has something to blur.
 class GlassBackdrop extends StatelessWidget {
   const GlassBackdrop({super.key, required this.child});
   final Widget child;
@@ -222,7 +212,10 @@ class GlassBackdrop extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: RadialGradient(
-          colors: [c.withValues(alpha: alpha), c.withValues(alpha: 0)],
+          colors: [
+            c.withValues(alpha: alpha),
+            c.withValues(alpha: 0),
+          ],
         ),
       ),
     ),
@@ -239,10 +232,10 @@ class GlassBackdrop extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFFD2F3E9),
-                  Color(0xFFE3EEFA),
-                  Color(0xFFEFEBFA),
-                  Color(0xFFF1F6F4),
+                  AppColors.homeGradientStart,
+                  AppColors.homeGradientBlue,
+                  AppColors.homeGradientPurple,
+                  AppColors.homeGradientEnd,
                 ],
                 stops: [0.0, 0.4, 0.7, 1.0],
               ),
@@ -259,7 +252,11 @@ class GlassBackdrop extends StatelessWidget {
             ),
           ),
         ),
-        Positioned(top: -90, left: -70, child: _blob(AppColors.brand, 300, 0.38)),
+        Positioned(
+          top: -90,
+          left: -70,
+          child: _blob(AppColors.brand, 300, 0.38),
+        ),
         Positioned(
           top: 200,
           right: -100,
@@ -281,7 +278,6 @@ class GlassBackdrop extends StatelessWidget {
   }
 }
 
-/// Gradient primary button with glow. Pass `onPressed: null` for disabled.
 class GlassPrimaryButton extends StatelessWidget {
   const GlassPrimaryButton({
     super.key,
@@ -305,11 +301,15 @@ class GlassPrimaryButton extends StatelessWidget {
             ? const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF2BC9A4), AppColors.brand, AppColors.brandDark],
+                colors: [
+                  Color(0xFF2BC9A4),
+                  AppColors.brand,
+                  AppColors.brandDark,
+                ],
               )
             : null,
         color: enabled ? null : AppColors.disabled,
-        border: Border.all(color: Colors.white.withValues(alpha: 0.6)),
+        border: Border.all(color: AppColors.kwhite.withValues(alpha: 0.6)),
         boxShadow: enabled
             ? [
                 BoxShadow(
@@ -328,7 +328,7 @@ class GlassPrimaryButton extends StatelessWidget {
           child: Center(
             child: DefaultTextStyle(
               style: const TextStyle(
-                color: Colors.white,
+                color: AppColors.kwhite,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.2,

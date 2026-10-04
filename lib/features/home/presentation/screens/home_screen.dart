@@ -4,7 +4,8 @@ import 'dart:ui';
 import 'package:community/app/app_router.dart';
 import 'package:community/core/constants/asset_constants.dart';
 import 'package:community/core/theme/app_colors.dart';
-import 'package:community/core/widgets/glass.dart';
+import 'package:community/core/widgets/app_skeleton.dart';
+import 'package:community/core/widgets/glass_morphism.dart';
 import 'package:community/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:community/features/report/presentation/screens/report_issue_screen.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +21,6 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-// ───────────────────────── Config (replace with API / session data) ─────────────────────────
 const int _maxChars = 50;
 const String _myId = '201';
 const String _communityName = 'Green Valley Community';
@@ -33,17 +33,6 @@ final List<String> _memberRooms = List.generate(
 String _clip(String s) =>
     s.length <= _maxChars ? s : '${s.substring(0, _maxChars - 1)}…';
 
-// ───────────────────────── Extra tones ─────────────────────────
-class _Tone {
-  _Tone._();
-  static const Color mint = Color(0xFF3FD0AE);
-  static const Color sky = Color(0xFF55A8E8);
-  static const Color lilac = Color(0xFF9B8CF2);
-  static const Color sun = Color(0xFFF6B04A);
-  static const Color coral = Color(0xFFFF7A7A);
-}
-
-// ───────────────────────── Model ─────────────────────────
 enum _Type { admin, member, report, sos }
 
 enum _DeleteChoice { everyone, me }
@@ -84,7 +73,7 @@ class _Item {
 
   final String day;
   final _Type type;
-  final String userId; // ONLY the ID is ever shown (no name / tower / flat)
+  final String userId;
   final String time;
   final String text;
   final bool hasImage;
@@ -123,8 +112,6 @@ class _Item {
       isAdmin ? 'Community Admin' : (isMine ? 'You' : 'Room $userId');
 }
 
-// ───────────────────────── Glass primitives ─────────────────────────
-/// Was: _Glass
 Widget _glass({
   required Widget child,
   BorderRadius radius = const BorderRadius.all(Radius.circular(22)),
@@ -139,7 +126,7 @@ Widget _glass({
   Color? shadowColor,
   Gradient? gradient,
 }) {
-  final base = tint ?? Colors.white;
+  final base = tint ?? AppColors.kwhite;
 
   final surface = Container(
     padding: padding,
@@ -172,7 +159,7 @@ Widget _glass({
       boxShadow: shadow
           ? [
               BoxShadow(
-                color: (shadowColor ?? const Color(0xFF1B5E52)).withValues(
+                color: (shadowColor ?? AppColors.glassShadow).withValues(
                   alpha: shadowColor == null ? 0.10 : 0.28,
                 ),
                 blurRadius: 24,
@@ -193,7 +180,6 @@ Widget _glass({
   );
 }
 
-/// Was: _Blob
 Widget _blob({
   required Color color,
   required double size,
@@ -216,7 +202,6 @@ Widget _blob({
   );
 }
 
-// ───────────────────────── Screen ─────────────────────────
 class _HomeScreenView extends StatefulWidget {
   const _HomeScreenView();
 
@@ -230,16 +215,24 @@ class _HomeScreenViewState extends State<_HomeScreenView>
   final _scroll = ScrollController();
   final _picker = ImagePicker();
   final _composerFocus = FocusNode();
+  final Set<_Item> _selected = {};
 
   bool _showJump = false;
   bool _pinnedVisible = true;
   _Item? _replyTo;
-  final Set<_Item> _selected = {};
   _Item? _editing;
-
-  int _tab = 0; // 0 = chat, 1 = report
+  int _tab = 0;
   GlobalKey<ReportIssueViewState> _reportKey = GlobalKey();
   bool _reportSubmitted = false;
+
+  bool _loading = true;
+
+  Future<void> _load() async {
+    await Future.delayed(const Duration(milliseconds: 1200));
+    if (!mounted) return;
+    setState(() => _loading = false);
+    _scrollToEnd();
+  }
 
   late final AnimationController _hold =
       AnimationController(vsync: this, duration: const Duration(seconds: 3))
@@ -247,8 +240,6 @@ class _HomeScreenViewState extends State<_HomeScreenView>
           if (s == AnimationStatus.completed) _sosSent();
         });
 
-  // Sample data — replace with API/stream. Every text is <= 50 chars.
-  // Backend rule: "Admin only" reports go only to the owner and admins.
   final List<_Item> _items = [
     const _Item(
       day: 'Yesterday',
@@ -289,7 +280,7 @@ class _HomeScreenViewState extends State<_HomeScreenView>
       userId: '118',
       time: '9:22 AM',
       text: 'Technician is checking it now',
-      replyAuthor: 'USR-3302',
+      replyAuthor: 'Room 214',
       replyText: 'Anyone knows why the lift is not working?',
     ),
     const _Item(
@@ -326,7 +317,6 @@ class _HomeScreenViewState extends State<_HomeScreenView>
       final far = _scroll.position.maxScrollExtent - _scroll.offset > 200;
       if (far != _showJump) setState(() => _showJump = far);
     });
-    // When the keyboard opens, keep the latest message visible.
     _composerFocus.addListener(() {
       if (_composerFocus.hasFocus) {
         Future.delayed(const Duration(milliseconds: 320), () {
@@ -337,6 +327,7 @@ class _HomeScreenViewState extends State<_HomeScreenView>
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => _jumpToEnd(animate: false),
     );
+    _load();
   }
 
   @override
@@ -348,7 +339,6 @@ class _HomeScreenViewState extends State<_HomeScreenView>
     super.dispose();
   }
 
-  /// Closes the keyboard everywhere (taps, sheets, route changes).
   void _dismissKeyboard() {
     FocusManager.instance.primaryFocus?.unfocus();
   }
@@ -367,8 +357,6 @@ class _HomeScreenViewState extends State<_HomeScreenView>
     }
   }
 
-  /// Keeps the newest message visible while the keyboard / bottom bar
-  /// are still animating and the chat height is changing.
   void _scrollToEnd() {
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => _jumpToEnd(animate: false),
@@ -380,11 +368,8 @@ class _HomeScreenViewState extends State<_HomeScreenView>
     }
   }
 
-  // ───────── Selection (WhatsApp style) ─────────
   bool get _selecting => _selected.isNotEmpty;
 
-  // Only my own text messages. Image-only messages: delete and re-upload.
-  // Image + text: only the text can be edited.
   bool get _canEdit {
     if (_selected.length != 1) return false;
     final i = _selected.first;
@@ -443,12 +428,10 @@ class _HomeScreenViewState extends State<_HomeScreenView>
       return;
     }
 
-    // "Delete for everyone" only for my own, not already deleted.
     final canEveryone = items.every((i) => i.isMine && !i.deleted);
-
     final choice = await showDialog<_DeleteChoice>(
       context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.25),
+      barrierColor: AppColors.kblack.withValues(alpha: 0.25),
       builder: (ctx) =>
           _deleteDialog(ctx, count: items.length, canEveryone: canEveryone),
     );
@@ -509,7 +492,6 @@ class _HomeScreenViewState extends State<_HomeScreenView>
       );
   }
 
-  // ───────── Tabs ─────────
   void _selectTab(int t) {
     if (t == _tab) return;
     _dismissKeyboard();
@@ -549,7 +531,6 @@ class _HomeScreenViewState extends State<_HomeScreenView>
     });
   }
 
-  // ───────── Sending ─────────
   void _addMine({String text = '', String? photoPath}) {
     setState(() {
       _items.add(
@@ -596,7 +577,6 @@ class _HomeScreenViewState extends State<_HomeScreenView>
     _dismissKeyboard();
   }
 
-  /// Posts the SOS alert in the community chat once the popup closes.
   void _addSos() {
     setState(() {
       _items.add(
@@ -617,7 +597,6 @@ class _HomeScreenViewState extends State<_HomeScreenView>
     }
   }
 
-  // ───────── Attach: ONE icon → Camera / Gallery → preview + caption ─────────
   Future<void> _openAttachSheet() async {
     if (_editing != null) {
       _toast('Finish editing first');
@@ -628,14 +607,13 @@ class _HomeScreenViewState extends State<_HomeScreenView>
       context: context,
       backgroundColor: Colors.transparent,
       elevation: 0,
-      barrierColor: Colors.black.withValues(alpha: 0.25),
+      barrierColor: AppColors.kblack.withValues(alpha: 0.25),
       builder: (ctx) => _attachSheet(ctx),
     );
     if (source == null || !mounted) return;
     await _pickFlow(source);
   }
 
-  /// pick -> preview (caption, <=50 chars) -> send / retake (loops).
   Future<void> _pickFlow(ImageSource source) async {
     while (mounted) {
       _dismissKeyboard();
@@ -689,7 +667,7 @@ class _HomeScreenViewState extends State<_HomeScreenView>
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       elevation: 0,
-      barrierColor: Colors.black.withValues(alpha: 0.25),
+      barrierColor: AppColors.kblack.withValues(alpha: 0.25),
       builder: (_) => _glass(
         radius: const BorderRadius.vertical(top: Radius.circular(32)),
         blur: 28,
@@ -712,12 +690,12 @@ class _HomeScreenViewState extends State<_HomeScreenView>
               height: 72,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [_Tone.mint, AppColors.brandDark],
+                  colors: [AppColors.mint, AppColors.brandDark],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 3),
+                border: Border.all(color: AppColors.kwhite, width: 3),
                 boxShadow: [
                   BoxShadow(
                     color: AppColors.brand.withValues(alpha: 0.45),
@@ -730,7 +708,7 @@ class _HomeScreenViewState extends State<_HomeScreenView>
               child: const Icon(
                 Icons.check_rounded,
                 size: 38,
-                color: Colors.white,
+                color: AppColors.kwhite,
               ),
             ),
             const SizedBox(height: 16),
@@ -836,7 +814,7 @@ class _HomeScreenViewState extends State<_HomeScreenView>
     final pinned = _pinned;
     return Column(
       children: [
-        if (pinned != null && _pinnedVisible)
+        if (!_loading && pinned != null && _pinnedVisible)
           Padding(
             padding: const EdgeInsets.only(top: 10),
             child: _pinnedBar(
@@ -845,59 +823,63 @@ class _HomeScreenViewState extends State<_HomeScreenView>
             ),
           ),
         Expanded(
-          child: Stack(
-            children: [
-              SingleChildScrollView(
-                controller: _scroll,
-                physics: const ClampingScrollPhysics(),
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: const EdgeInsets.fromLTRB(0, 12, 0, 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (int i = 0; i < _items.length; i++) ...[
-                      if (i == 0 || _items[i].day != _items[i - 1].day)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 14),
-                          child: _dayChip(label: _items[i].day),
+          child: SkeletonSwitcher(
+            loading: _loading,
+            skeleton: const SkeletonChatList(),
+            child: Stack(
+              children: [
+                SingleChildScrollView(
+                  controller: _scroll,
+                  physics: const ClampingScrollPhysics(),
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: const EdgeInsets.fromLTRB(0, 12, 0, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      for (int i = 0; i < _items.length; i++) ...[
+                        if (i == 0 || _items[i].day != _items[i - 1].day)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            child: _dayChip(label: _items[i].day),
+                          ),
+                        _messageRow(
+                          context,
+                          item: _items[i],
+                          selected: _selected.contains(_items[i]),
+                          selecting: _selecting,
+                          onTap: () => _onRowTap(_items[i]),
+                          onLongPress: () => _onRowLongPress(_items[i]),
+                          onReply: () => _swipeReply(_items[i]),
                         ),
-                      _messageRow(
-                        context,
-                        item: _items[i],
-                        selected: _selected.contains(_items[i]),
-                        selecting: _selecting,
-                        onTap: () => _onRowTap(_items[i]),
-                        onLongPress: () => _onRowLongPress(_items[i]),
-                        onReply: () => _swipeReply(_items[i]),
-                      ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-              Positioned(
-                right: 16,
-                bottom: 8,
-                child: AnimatedScale(
-                  scale: _showJump ? 1 : 0,
-                  duration: const Duration(milliseconds: 180),
-                  child: GestureDetector(
-                    onTap: _jumpToEnd,
-                    child: _glass(
-                      radius: const BorderRadius.all(Radius.circular(24)),
-                      blur: 14,
-                      opacity: 0.78,
-                      shadowColor: AppColors.brand,
-                      padding: const EdgeInsets.all(10),
-                      child: const Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        color: AppColors.brandDark,
+                Positioned(
+                  right: 16,
+                  bottom: 8,
+                  child: AnimatedScale(
+                    scale: _showJump ? 1 : 0,
+                    duration: const Duration(milliseconds: 180),
+                    child: GestureDetector(
+                      onTap: _jumpToEnd,
+                      child: _glass(
+                        radius: const BorderRadius.all(Radius.circular(24)),
+                        blur: 14,
+                        opacity: 0.78,
+                        shadowColor: AppColors.brand,
+                        padding: const EdgeInsets.all(10),
+                        child: const Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          color: AppColors.brandDark,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         if (_editing != null)
@@ -911,11 +893,17 @@ class _HomeScreenViewState extends State<_HomeScreenView>
             item: _replyTo!,
             onClose: () => setState(() => _replyTo = null),
           ),
-        _composer(
-          controller: _controller,
-          focusNode: _composerFocus,
-          onSend: _sendText,
-          onAttach: _openAttachSheet,
+        IgnorePointer(
+          ignoring: _loading,
+          child: Opacity(
+            opacity: _loading ? 0.5 : 1,
+            child: _composer(
+              controller: _controller,
+              focusNode: _composerFocus,
+              onSend: _sendText,
+              onAttach: _openAttachSheet,
+            ),
+          ),
         ),
       ],
     );
@@ -936,7 +924,6 @@ class _HomeScreenViewState extends State<_HomeScreenView>
         final handled = _reportKey.currentState?.handleBack() ?? false;
         if (!handled) _selectTab(0);
       },
-      // Tapping empty space anywhere closes the keyboard.
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: _dismissKeyboard,
@@ -1032,8 +1019,6 @@ class _HomeScreenViewState extends State<_HomeScreenView>
   }
 }
 
-// ───────────────────────── Attach sheet (Camera / Gallery) ─────────────────────────
-/// Was: _AttachSheet
 Widget _attachSheet(BuildContext context) {
   Widget option(IconData icon, String label, ImageSource source) {
     return ListTile(
@@ -1089,7 +1074,6 @@ Widget _attachSheet(BuildContext context) {
   );
 }
 
-/// Was: _HomeBackdrop
 Widget _homeBackdrop({required Widget child}) {
   return Stack(
     children: [
@@ -1100,10 +1084,10 @@ Widget _homeBackdrop({required Widget child}) {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Color(0xFFD2F3E9),
-                Color(0xFFE3EEFA),
-                Color(0xFFEFEBFA),
-                Color(0xFFF1F6F4),
+                AppColors.homeGradientStart,
+                AppColors.homeGradientBlue,
+                AppColors.homeGradientPurple,
+                AppColors.homeGradientEnd,
               ],
               stops: [0.0, 0.4, 0.7, 1.0],
             ),
@@ -1128,7 +1112,7 @@ Widget _homeBackdrop({required Widget child}) {
       Positioned(
         top: 120,
         right: -80,
-        child: _blob(color: _Tone.sun, size: 220, alpha: 0.20),
+        child: _blob(color: AppColors.sun, size: 220, alpha: 0.20),
       ),
       Positioned(
         top: 300,
@@ -1143,14 +1127,13 @@ Widget _homeBackdrop({required Widget child}) {
       Positioned(
         bottom: -60,
         right: -60,
-        child: _blob(color: _Tone.coral, size: 220, alpha: 0.16),
+        child: _blob(color: AppColors.coral, size: 220, alpha: 0.16),
       ),
       Positioned.fill(child: child),
     ],
   );
 }
 
-// ───────────────────────── Image preview + caption screen ─────────────────────────
 class _PreviewResult {
   const _PreviewResult({this.caption = '', this.retake = false});
   final String caption;
@@ -1348,12 +1331,11 @@ class _ImagePreviewScreenState extends State<_ImagePreviewScreen> {
   }
 }
 
-/// Was: _SendOrb
 Widget _sendOrb({required VoidCallback onTap}) {
   return Container(
     decoration: BoxDecoration(
       gradient: const LinearGradient(
-        colors: [_Tone.mint, AppColors.brand, AppColors.brandDark],
+        colors: [AppColors.mint, AppColors.brand, AppColors.brandDark],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ),
@@ -1372,13 +1354,11 @@ Widget _sendOrb({required VoidCallback onTap}) {
     ),
     child: IconButton(
       onPressed: onTap,
-      icon: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+      icon: const Icon(Icons.send_rounded, color: AppColors.kwhite, size: 20),
     ),
   );
 }
 
-// ───────────────────────── Header ─────────────────────────
-/// Was: _Header
 Widget _header(
   BuildContext context, {
   required VoidCallback onNotifications,
@@ -1391,7 +1371,7 @@ Widget _header(
     radius: const BorderRadius.vertical(bottom: Radius.circular(0)),
     blur: 28,
     opacity: 0.66,
-    tint: const Color(0xFFF1FBF8),
+    tint: AppColors.headerTint,
     borderOpacity: 0.95,
     padding: EdgeInsets.fromLTRB(16, top + 10, 16, 12),
     child: Row(
@@ -1409,7 +1389,7 @@ Widget _header(
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [
-                        _Tone.mint,
+                        AppColors.mint,
                         AppColors.brand,
                         AppColors.brandDark,
                       ],
@@ -1418,7 +1398,7 @@ Widget _header(
                     ),
                     borderRadius: BorderRadius.circular(15),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.7),
+                      color: AppColors.kwhite.withValues(alpha: 0.7),
                     ),
                     boxShadow: [
                       BoxShadow(
@@ -1452,7 +1432,8 @@ Widget _header(
                       ),
                       const Icon(
                         Icons.groups_rounded,
-                        color: Colors.white,
+                        color: AppColors.kwhite,
+
                         size: 25,
                       ),
                     ],
@@ -1527,8 +1508,8 @@ Widget _header(
               gradient: SweepGradient(
                 colors: [
                   AppColors.brand,
-                  _Tone.sky,
-                  _Tone.lilac,
+                  AppColors.sky,
+                  AppColors.lilac,
                   AppColors.brand,
                 ],
               ),
@@ -1537,7 +1518,7 @@ Widget _header(
               padding: const EdgeInsets.all(2),
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white,
+                color: AppColors.kwhite,
               ),
               child: CircleAvatar(
                 radius: 16,
@@ -1556,7 +1537,6 @@ Widget _header(
   );
 }
 
-/// Was: _HeaderIcon
 Widget _headerIcon({
   required IconData icon,
   required VoidCallback onTap,
@@ -1586,15 +1566,15 @@ Widget _headerIcon({
                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [_Tone.coral, AppColors.error],
+                    colors: [AppColors.coral, AppColors.error],
                   ),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.white, width: 1.5),
+                  border: Border.all(color: AppColors.kwhite, width: 1.5),
                 ),
                 child: Text(
                   badgeCount > 9 ? '9+' : '$badgeCount',
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.kwhite,
                     fontSize: 9.5,
                     fontWeight: FontWeight.w800,
                   ),
@@ -1607,7 +1587,6 @@ Widget _headerIcon({
   );
 }
 
-/// Was: _PinnedBar
 Widget _pinnedBar({required String text, required VoidCallback onClose}) {
   return _glass(
     margin: const EdgeInsets.fromLTRB(16, 0, 16, 6),
@@ -1630,7 +1609,7 @@ Widget _pinnedBar({required String text, required VoidCallback onClose}) {
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [_Tone.sky, AppColors.info],
+              colors: [AppColors.sky, AppColors.info],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -1639,7 +1618,7 @@ Widget _pinnedBar({required String text, required VoidCallback onClose}) {
           child: const Icon(
             Icons.push_pin_rounded,
             size: 14,
-            color: Colors.white,
+            color: AppColors.kwhite,
           ),
         ),
         const SizedBox(width: 10),
@@ -1678,8 +1657,6 @@ Widget _pinnedBar({required String text, required VoidCallback onClose}) {
   );
 }
 
-// ───────────────────────── Feed ─────────────────────────
-/// Was: _DayChip
 Widget _dayChip({required String label}) {
   Widget line(bool left) => Expanded(
     child: Container(
@@ -1724,9 +1701,6 @@ Widget _dayChip({required String label}) {
   );
 }
 
-/// Every message (mine and others') carries its own avatar.
-/// Mine → right side, green. Others → left side, coloured by user ID.
-/// Was: _MessageRow
 Widget _messageRow(
   BuildContext context, {
   required _Item item,
@@ -1828,7 +1802,6 @@ class _SwipeToReplyState extends State<_SwipeToReply>
   void _update(DragUpdateDetails d) {
     if (!widget.enabled) return;
 
-    // Left to right only.
     final next = (_dx + d.delta.dx).clamp(0.0, _trigger * 1.25);
 
     if (!_fired && next >= _trigger) {
@@ -1894,8 +1867,6 @@ class _SwipeToReplyState extends State<_SwipeToReply>
   }
 }
 
-// ───────────────────────── Selection bar ─────────────────────────
-/// Was: _SelectionBar._openMenu
 Future<void> _openSelectionMenu(
   BuildContext context,
   VoidCallback? onEdit,
@@ -1906,7 +1877,7 @@ Future<void> _openSelectionMenu(
     context: context,
     barrierDismissible: true,
     barrierLabel: 'Menu',
-    barrierColor: Colors.black.withValues(alpha: 0.10),
+    barrierColor: AppColors.kblack.withValues(alpha: 0.10),
     transitionDuration: const Duration(milliseconds: 170),
     pageBuilder: (ctx, _, _) => Align(
       alignment: Alignment.topRight,
@@ -1943,7 +1914,6 @@ Future<void> _openSelectionMenu(
   if (picked == 'edit') onEdit?.call();
 }
 
-/// Was: _SelectionBar
 Widget _selectionBar(
   BuildContext context, {
   required int count,
@@ -1958,7 +1928,7 @@ Widget _selectionBar(
     radius: BorderRadius.zero,
     blur: 28,
     opacity: 0.66,
-    tint: const Color(0xFFF1FBF8),
+    tint: AppColors.headerTint,
     borderOpacity: 0.95,
     padding: EdgeInsets.fromLTRB(8, top + 10, 8, 12),
     child: SizedBox(
@@ -2016,7 +1986,6 @@ class _GlassMenuItem {
   final String label;
 }
 
-/// Was: _GlassMenu
 Widget _glassMenu(BuildContext context, {required List<_GlassMenuItem> items}) {
   return ConstrainedBox(
     constraints: const BoxConstraints(minWidth: 170),
@@ -2025,7 +1994,7 @@ Widget _glassMenu(BuildContext context, {required List<_GlassMenuItem> items}) {
         radius: BorderRadius.circular(20),
         blur: 24,
         opacity: 0.88,
-        tint: const Color(0xFFF1FBF8),
+        tint: AppColors.headerTint,
         shadowColor: AppColors.brand,
         borderOpacity: 0.95,
         padding: const EdgeInsets.all(6),
@@ -2078,8 +2047,6 @@ Widget _glassMenu(BuildContext context, {required List<_GlassMenuItem> items}) {
   );
 }
 
-// ───────────────────────── Delete dialog ─────────────────────────
-/// Was: _DeleteDialog
 Widget _deleteDialog(
   BuildContext context, {
   required int count,
@@ -2144,8 +2111,6 @@ Widget _deleteDialog(
   );
 }
 
-// ───────────────────────── Deleted message ─────────────────────────
-/// Was: _DeletedBubble
 Widget _deletedBubble({required _Item item}) {
   return _glass(
     padding: const EdgeInsets.fromLTRB(12, 9, 12, 7),
@@ -2206,7 +2171,6 @@ Widget _deletedBubble({required _Item item}) {
   );
 }
 
-/// Was: _SosCard
 Widget _sosCard({required _Item item}) {
   const accent = AppColors.error;
 
@@ -2270,7 +2234,7 @@ Widget _sosCard({required _Item item}) {
                 child: const Icon(
                   Icons.notifications_active_rounded,
                   size: 16,
-                  color: Colors.white,
+                  color: AppColors.kwhite,
                 ),
               ),
               const SizedBox(width: 9),
@@ -2388,7 +2352,6 @@ Widget _sosCard({required _Item item}) {
   );
 }
 
-/// Was: _Avatar
 Widget _avatar({required _Item item}) {
   final mine = item.isMine;
   final color = item.isAdmin
@@ -2418,7 +2381,7 @@ Widget _avatar({required _Item item}) {
         colors: [color.withValues(alpha: 0.32), color.withValues(alpha: 0.12)],
       ),
       shape: BoxShape.circle,
-      border: Border.all(color: Colors.white, width: 1.5),
+      border: Border.all(color: AppColors.kwhite, width: 1.5),
       boxShadow: [
         BoxShadow(
           color: color.withValues(alpha: 0.25),
@@ -2432,7 +2395,6 @@ Widget _avatar({required _Item item}) {
   );
 }
 
-/// Was: _ImageBlock
 Widget _imageBlock({String? path}) {
   if (path != null) {
     return Container(
@@ -2458,20 +2420,19 @@ Widget _imageBlock({String? path}) {
       gradient: LinearGradient(
         colors: [
           AppColors.cyan.withValues(alpha: 0.26),
-          _Tone.lilac.withValues(alpha: 0.16),
+          AppColors.lilac.withValues(alpha: 0.16),
           AppColors.brand.withValues(alpha: 0.16),
         ],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ),
       borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: Colors.white.withValues(alpha: 0.7)),
+      border: Border.all(color: AppColors.kwhite.withValues(alpha: 0.7)),
     ),
     child: const Icon(Icons.image_rounded, size: 38, color: AppColors.slate),
   );
 }
 
-/// Was: _QuoteBlock
 Widget _quoteBlock({
   required String author,
   required String text,
@@ -2513,7 +2474,6 @@ Widget _quoteBlock({
   );
 }
 
-/// Was: _Bubble
 Widget _bubble({required _Item item}) {
   final mine = item.isMine;
   final isAdmin = item.isAdmin;
@@ -2525,7 +2485,7 @@ Widget _bubble({required _Item item}) {
       ? const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xF000B38F), Color(0xF0287B6D)],
+          colors: [AppColors.sosGradientStart, AppColors.sosGradientEnd],
         )
       : isAdmin
       ? LinearGradient(
@@ -2651,7 +2611,6 @@ Widget _bubble({required _Item item}) {
   );
 }
 
-/// Was: _ReportCard
 Widget _reportCard({required _Item item}) {
   final accent = item.isMine ? AppColors.brand : AppColors.violet;
   final status = item.status!;
@@ -2810,7 +2769,6 @@ Widget _reportCard({required _Item item}) {
   );
 }
 
-/// Was: _StatusStepper
 Widget _statusStepper({required _Status status}) {
   final steps = _Status.values;
   final idx = status.index;
@@ -2889,8 +2847,6 @@ Widget _statusStepper({required _Status status}) {
   );
 }
 
-// ───────────────────────── Composer ─────────────────────────
-/// Was: _ReplyPreview
 Widget _replyPreview({
   required _Item item,
   required VoidCallback onClose,
@@ -2954,7 +2910,6 @@ Widget _replyPreview({
   );
 }
 
-/// Was: _Composer
 Widget _composer({
   required TextEditingController controller,
   required FocusNode focusNode,
@@ -3045,10 +3000,8 @@ Widget _composer({
   );
 }
 
-// ───────────────────────── Bottom nav: Home | SOS | Report ─────────────────────────
 const double _bottomNavBarHeight = 100;
 
-/// Was: _BottomNav
 Widget _bottomNav({
   required AnimationController hold,
   required int tab,
@@ -3064,7 +3017,7 @@ Widget _bottomNav({
           radius: const BorderRadius.vertical(top: Radius.circular(28)),
           blur: 28,
           opacity: 0.66,
-          tint: const Color(0xFFF1FBF8),
+          tint: AppColors.headerTint,
           borderOpacity: 0.95,
           child: Container(
             height: _bottomNavBarHeight,
@@ -3106,7 +3059,6 @@ Widget _bottomNav({
   );
 }
 
-/// Was: _NavItem
 Widget _navItem({
   required IconData icon,
   required String label,
@@ -3297,9 +3249,9 @@ class _SosButtonState extends State<_SosButton>
                         center: Alignment(-0.25, -0.5),
                         radius: 1.0,
                         colors: [
-                          Color(0xFFFF5252),
-                          Color(0xFFE41B1B),
-                          Color(0xFFC20F0F),
+                          AppColors.sosRed,
+                          AppColors.sosDarkRed,
+                          AppColors.sosDeepRed,
                         ],
                         stops: [0.0, 0.55, 1.0],
                       ),
@@ -3352,13 +3304,13 @@ class _SosButtonState extends State<_SosButton>
                           children: [
                             Icon(
                               Icons.notifications_active_rounded,
-                              color: Colors.white,
+                              color: AppColors.kwhite,
                               size: 22,
                             ),
                             Text(
                               'SOS',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: AppColors.kwhite,
                                 fontSize: 16,
                                 height: 1.05,
                                 fontWeight: FontWeight.w800,
@@ -3380,7 +3332,6 @@ class _SosButtonState extends State<_SosButton>
   }
 }
 
-/// Was: _SosHoldOverlay
 Widget _sosHoldOverlay({required AnimationController hold}) {
   return Positioned.fill(
     child: IgnorePointer(
@@ -3406,14 +3357,14 @@ Widget _sosHoldOverlay({required AnimationController hold}) {
                   style: const TextStyle(
                     fontSize: 84,
                     fontWeight: FontWeight.w900,
-                    color: Colors.white,
+                    color: AppColors.kwhite,
                     decoration: TextDecoration.none,
                   ),
                 ),
                 const Text(
                   'Keep holding to send SOS',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.kwhite,
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     decoration: TextDecoration.none,
@@ -3428,7 +3379,10 @@ Widget _sosHoldOverlay({required AnimationController hold}) {
   );
 }
 
-// ───────────────────────── Members screen ─────────────────────────
+// Paste this over the existing `_MembersScreen` + `_MembersScreenState`
+// in home_screen.dart (it uses the private _glass / _homeBackdrop helpers
+// from that file, so it must stay in the same file).
+
 class _MembersScreen extends StatefulWidget {
   const _MembersScreen();
 
@@ -3438,6 +3392,16 @@ class _MembersScreen extends StatefulWidget {
 
 class _MembersScreenState extends State<_MembersScreen> {
   final _search = TextEditingController();
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Replace with your real members fetch.
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (mounted) setState(() => _loading = false);
+    });
+  }
 
   @override
   void dispose() {
@@ -3445,59 +3409,12 @@ class _MembersScreenState extends State<_MembersScreen> {
     super.dispose();
   }
 
-  Widget _row({
-    required Widget avatar,
-    required String title,
-    String? tag,
-    Color tagColor = AppColors.brand,
-  }) {
-    return _glass(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.fromLTRB(12, 10, 14, 10),
-      radius: BorderRadius.circular(18),
-      blur: 0,
-      opacity: 0.62,
-      shadow: false,
-      child: Row(
-        children: [
-          avatar,
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: AppColors.title,
-              ),
-            ),
-          ),
-          if (tag != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-              decoration: BoxDecoration(
-                color: tagColor.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: tagColor.withValues(alpha: 0.28)),
-              ),
-              child: Text(
-                tag,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  color: tagColor,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
+  // ───────── small building blocks ─────────
 
-  Widget _circle(Widget inner, Color color) {
+  Widget _circle(Widget inner, Color color, {double size = 44}) {
     return Container(
-      width: 40,
-      height: 40,
+      width: size,
+      height: size,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
@@ -3505,13 +3422,525 @@ class _MembersScreenState extends State<_MembersScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            color.withValues(alpha: 0.32),
+            color.withValues(alpha: 0.34),
             color.withValues(alpha: 0.12),
           ],
         ),
-        border: Border.all(color: Colors.white, width: 1.5),
+        border: Border.all(color: AppColors.kwhite, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.25),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: inner,
+    );
+  }
+
+  /// Fade + slide-up entrance, staggered by [index].
+  Widget _entrance(int index, Widget child) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: Duration(milliseconds: 280 + (index.clamp(0, 8)) * 45),
+      curve: Curves.easeOutCubic,
+      builder: (_, v, c) => Opacity(
+        opacity: v,
+        child: Transform.translate(offset: Offset(0, 14 * (1 - v)), child: c),
+      ),
+      child: child,
+    );
+  }
+
+  Widget _tile({
+    required int index,
+    required Widget avatar,
+    required String title,
+    String? subtitle,
+    String? tag,
+    Color tagColor = AppColors.brand,
+    bool highlight = false,
+  }) {
+    return _entrance(
+      index,
+      _glass(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.fromLTRB(12, 10, 14, 10),
+        radius: BorderRadius.circular(20),
+        blur: 0,
+        opacity: highlight ? 0.80 : 0.62,
+        shadow: highlight,
+        shadowColor: highlight ? AppColors.brand : null,
+        borderColor: highlight
+            ? AppColors.brand.withValues(alpha: 0.55)
+            : tagColor == AppColors.info
+            ? AppColors.info.withValues(alpha: 0.40)
+            : null,
+        child: Row(
+          children: [
+            avatar,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.title,
+                    ),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.hint,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (tag != null)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: tagColor.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: tagColor.withValues(alpha: 0.28)),
+                ),
+                child: Text(
+                  tag,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: tagColor,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _section(
+    String label, {
+    int? count,
+    IconData icon = Icons.layers_rounded,
+    Color color = AppColors.slate,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 12, 4, 10),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(9),
+            ),
+            child: Icon(icon, size: 14, color: color),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.4,
+              color: color,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Container(
+              height: 1,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    color.withValues(alpha: 0.30),
+                    color.withValues(alpha: 0),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          if (count != null) ...[
+            const SizedBox(width: 10),
+            Text(
+              '$count',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppColors.hint,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _statPill(IconData icon, String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(8, 4, 11, 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: color),
+          const SizedBox(width: 5),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w800,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _heroCard() {
+    final floors = (_memberCount / 6).ceil();
+    return _entrance(
+      0,
+      _glass(
+        margin: const EdgeInsets.only(bottom: 6),
+        padding: const EdgeInsets.all(16),
+        radius: BorderRadius.circular(26),
+        blur: 0,
+        opacity: 0.70,
+        shadowColor: AppColors.brand,
+        borderColor: AppColors.brand.withValues(alpha: 0.30),
+        child: Row(
+          children: [
+            Container(
+              width: 62,
+              height: 62,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [
+                    AppColors.mint,
+                    AppColors.brand,
+                    AppColors.brandDark,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppColors.kwhite.withValues(alpha: 0.7),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.brand.withValues(alpha: 0.40),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.groups_rounded,
+                color: AppColors.kwhite,
+                size: 32,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    _communityName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.title,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      _statPill(
+                        Icons.people_alt_rounded,
+                        '$_memberCount members',
+                        AppColors.brandDark,
+                      ),
+                      _statPill(
+                        Icons.apartment_rounded,
+                        '$floors floors',
+                        AppColors.info,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _header(double top) {
+    return _glass(
+      radius: BorderRadius.zero,
+      blur: 28,
+      opacity: 0.66,
+      tint: AppColors.headerTint,
+      borderOpacity: 0.95,
+      padding: EdgeInsets.fromLTRB(8, top + 10, 16, 12),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.arrow_back_rounded, color: AppColors.title),
+          ),
+          const SizedBox(width: 4),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Members',
+                  style: TextStyle(
+                    fontSize: 19,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.title,
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  '$_communityName · $_memberCount',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.body,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _searchBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+      child: ListenableBuilder(
+        listenable: _search,
+        builder: (context, _) {
+          final has = _search.text.isNotEmpty;
+          return _glass(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            radius: BorderRadius.circular(30),
+            blur: 20,
+            opacity: 0.62,
+            shadow: has,
+            shadowColor: has ? AppColors.brand : null,
+            borderColor: has
+                ? AppColors.brand.withValues(alpha: 0.65)
+                : Colors.white.withValues(alpha: 0.85),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.search_rounded,
+                  color: has ? AppColors.brand : AppColors.hint,
+                  size: 22,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _search,
+                    keyboardType: TextInputType.number,
+                    cursorColor: AppColors.brand,
+                    style: const TextStyle(
+                      fontSize: 14.5,
+                      color: AppColors.title,
+                    ),
+                    decoration: const InputDecoration(
+                      hintText: 'Search room number',
+                      hintStyle: TextStyle(color: AppColors.hint, fontSize: 14),
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+                if (has)
+                  IconButton(
+                    onPressed: _search.clear,
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      size: 18,
+                      color: AppColors.slate,
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _empty() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _circle(
+            const Icon(
+              Icons.search_off_rounded,
+              size: 30,
+              color: AppColors.slate,
+            ),
+            AppColors.slate,
+            size: 72,
+          ),
+          const SizedBox(height: 14),
+          const Text(
+            'No room found',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+              color: AppColors.title,
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Try a different room number',
+            style: TextStyle(fontSize: 12.5, color: AppColors.body),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _list() {
+    return ListenableBuilder(
+      listenable: _search,
+      builder: (context, _) {
+        final q = _search.text.trim();
+        final searching = q.isNotEmpty;
+
+        final rooms = [
+          for (final r in _memberRooms)
+            if (r != _myId && (!searching || r.contains(q))) r,
+        ];
+        final showAdmin = !searching;
+        final showMyRoom = !searching || _myId.contains(q);
+
+        if (rooms.isEmpty && !showAdmin && !showMyRoom) return _empty();
+
+        // Group by floor (first digit of the room number).
+        final byFloor = <String, List<String>>{};
+        for (final r in rooms) {
+          byFloor.putIfAbsent(r[0], () => []).add(r);
+        }
+
+        int i = 1;
+        return ListView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: const EdgeInsets.fromLTRB(16, 6, 16, 28),
+          children: [
+            if (!searching) _heroCard(),
+            if (showAdmin) ...[
+              _section(
+                'ADMIN',
+                icon: Icons.verified_rounded,
+                color: AppColors.info,
+              ),
+              _tile(
+                index: i++,
+                avatar: _circle(
+                  const Icon(
+                    Icons.campaign_rounded,
+                    size: 22,
+                    color: AppColors.info,
+                  ),
+                  AppColors.info,
+                ),
+                title: 'Community Admin',
+                subtitle: 'Manages the community',
+                tag: 'Admin',
+                tagColor: AppColors.info,
+              ),
+            ],
+            if (showMyRoom) ...[
+              _section(
+                'YOU',
+                icon: Icons.person_rounded,
+                color: AppColors.brand,
+              ),
+              _tile(
+                index: i++,
+                highlight: true,
+                avatar: _circle(
+                  const Icon(
+                    Icons.person_rounded,
+                    size: 22,
+                    color: AppColors.brand,
+                  ),
+                  AppColors.brand,
+                ),
+                title: 'Room $_myId',
+                subtitle: 'Floor ${_myId[0]}',
+                tag: 'You',
+              ),
+            ],
+            for (final e in byFloor.entries) ...[
+              _section(
+                'FLOOR ${e.key}',
+                count: e.value.length,
+                icon: Icons.apartment_rounded,
+              ),
+              for (final r in e.value)
+                _tile(
+                  index: i++,
+                  avatar: _circle(
+                    Text(
+                      r,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.slate,
+                      ),
+                    ),
+                    AppColors.slate,
+                  ),
+                  title: 'Room $r',
+                  subtitle: 'Resident',
+                ),
+            ],
+          ],
+        );
+      },
     );
   }
 
@@ -3523,175 +3952,17 @@ class _MembersScreenState extends State<_MembersScreen> {
       behavior: HitTestBehavior.translucent,
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
-        backgroundColor: const Color(0xFFEAF4F1),
+        backgroundColor: AppColors.background,
         body: _homeBackdrop(
           child: Column(
             children: [
-              _glass(
-                radius: BorderRadius.zero,
-                blur: 28,
-                opacity: 0.66,
-                tint: const Color(0xFFF1FBF8),
-                borderOpacity: 0.95,
-                padding: EdgeInsets.fromLTRB(8, top + 10, 16, 12),
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(
-                        Icons.arrow_back_rounded,
-                        color: AppColors.title,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _communityName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.title,
-                            ),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                            '$_memberCount members',
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.body,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-                child: _glass(
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  radius: BorderRadius.circular(30),
-                  blur: 20,
-                  opacity: 0.62,
-                  shadow: false,
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.search_rounded,
-                        color: AppColors.hint,
-                        size: 22,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: TextField(
-                          controller: _search,
-                          keyboardType: TextInputType.number,
-                          cursorColor: AppColors.brand,
-                          style: const TextStyle(
-                            fontSize: 14.5,
-                            color: AppColors.title,
-                          ),
-                          decoration: const InputDecoration(
-                            hintText: 'Search room number',
-                            hintStyle: TextStyle(
-                              color: AppColors.hint,
-                              fontSize: 14,
-                            ),
-                            border: InputBorder.none,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              _header(top),
+              _searchBar(),
               Expanded(
-                child: ListenableBuilder(
-                  listenable: _search,
-                  builder: (context, _) {
-                    final q = _search.text.trim();
-                    final rooms = [
-                      for (final r in _memberRooms)
-                        if (r != _myId && (q.isEmpty || r.contains(q))) r,
-                    ];
-
-                    final showAdmin = q.isEmpty;
-                    final showMyRoom = q.isEmpty || _myId.contains(q);
-
-                    if (rooms.isEmpty && !showAdmin) {
-                      return const Center(
-                        child: Text(
-                          'No room found',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.body,
-                          ),
-                        ),
-                      );
-                    }
-
-                    return ListView(
-                      keyboardDismissBehavior:
-                          ScrollViewKeyboardDismissBehavior.onDrag,
-                      padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
-                      children: [
-                        if (showAdmin)
-                          _row(
-                            avatar: _circle(
-                              const Icon(
-                                Icons.campaign_rounded,
-                                size: 21,
-                                color: AppColors.info,
-                              ),
-                              AppColors.info,
-                            ),
-                            title: 'Community Admin',
-                            tag: 'Admin',
-                            tagColor: AppColors.info,
-                          ),
-
-                        // My room always directly below Community Admin
-                        if (showMyRoom)
-                          _row(
-                            avatar: _circle(
-                              const Icon(
-                                Icons.person_rounded,
-                                size: 21,
-                                color: AppColors.brand,
-                              ),
-                              AppColors.brand,
-                            ),
-                            title: 'Room $_myId',
-                            tag: 'You',
-                          ),
-
-                        // Other rooms
-                        for (final r in rooms)
-                          _row(
-                            avatar: _circle(
-                              Text(
-                                r,
-                                style: const TextStyle(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.slate,
-                                ),
-                              ),
-                              AppColors.slate,
-                            ),
-                            title: 'Room $r',
-                          ),
-                      ],
-                    );
-                  },
+                child: SkeletonSwitcher(
+                  loading: _loading,
+                  skeleton: const SkeletonList(count: 9),
+                  child: _list(),
                 ),
               ),
             ],

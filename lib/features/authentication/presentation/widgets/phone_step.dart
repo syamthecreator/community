@@ -1,4 +1,5 @@
-import 'package:community/core/widgets/glass.dart';
+import 'package:community/core/theme/app_colors.dart';
+import 'package:community/core/widgets/glass_morphism.dart';
 import 'package:community/core/widgets/motion.dart';
 import 'package:community/features/authentication/presentation/screens/auth_screen.dart';
 import 'package:community/features/authentication/presentation/widgets/auth_step.dart';
@@ -68,7 +69,6 @@ class _PhoneStepState extends State<PhoneStep> {
     );
   }
 
-  /// Was: AuthContinueButton
   Widget _continueButton() {
     return Consumer<AuthProvider>(
       builder: (context, auth, _) {
@@ -81,20 +81,20 @@ class _PhoneStepState extends State<PhoneStep> {
             transitionBuilder: (child, anim) =>
                 ScaleTransition(scale: anim, child: child),
             child: auth.isPhoneVerified
-                ? const Icon(
+                ?  Icon(
                     Icons.check_rounded,
                     key: ValueKey('done'),
-                    color: Colors.white,
+                    color:AppColors.kwhite,
                     size: 26,
                   )
                 : auth.isLoading
-                ? const SizedBox(
+                ?  SizedBox(
                     key: ValueKey('loader'),
                     width: 22,
                     height: 22,
                     child: CircularProgressIndicator(
                       strokeWidth: 2.4,
-                      color: Colors.white,
+                      color: AppColors.kwhite,
                     ),
                   )
                 : const Text('Continue', key: ValueKey('label')),

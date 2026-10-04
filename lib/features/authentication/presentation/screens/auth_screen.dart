@@ -1,6 +1,6 @@
 import 'package:community/core/constants/asset_constants.dart';
 import 'package:community/core/theme/app_colors.dart';
-import 'package:community/core/widgets/glass.dart';
+import 'package:community/core/widgets/glass_morphism.dart';
 import 'package:community/core/widgets/motion.dart';
 import 'package:community/features/authentication/provider/auth_provider.dart';
 import 'package:flutter/material.dart';
@@ -18,8 +18,6 @@ class AuthScreen extends StatelessWidget {
       selector: (_, auth) => auth.step,
       builder: (context, step, _) {
         final onPin = step == AuthFlowStep.pin;
-
-        // System back on the PIN step returns to the mobile step.
         return PopScope(
           canPop: !onPin,
           onPopInvokedWithResult: (didPop, _) {
@@ -29,7 +27,7 @@ class AuthScreen extends StatelessWidget {
             behavior: HitTestBehavior.translucent,
             onTap: () => FocusScope.of(context).unfocus(),
             child: Scaffold(
-              backgroundColor: const Color(0xFFEAF4F1),
+              backgroundColor: AppColors.background,
               resizeToAvoidBottomInset: true,
               body: GlassBackdrop(
                 child: SafeArea(
@@ -51,10 +49,11 @@ class AuthScreen extends StatelessWidget {
                                     duration: const Duration(milliseconds: 350),
                                     switchInCurve: Curves.easeOutCubic,
                                     switchOutCurve: Curves.easeInCubic,
-                                    layoutBuilder: (current, previous) => Stack(
-                                      fit: StackFit.expand,
-                                      children: [...previous, ?current],
-                                    ),
+                                    layoutBuilder: (current, previous) =>
+                                        Stack(
+                                          fit: StackFit.expand,
+                                          children: [...previous, ?current],
+                                        ),
                                     transitionBuilder: (child, anim) =>
                                         FadeTransition(
                                           opacity: anim,
@@ -67,7 +66,9 @@ class AuthScreen extends StatelessWidget {
                                           ),
                                         ),
                                     child: onPin
-                                        ? const PinStep(key: ValueKey('pin'))
+                                        ? const PinStep(
+                                            key: ValueKey('pin'),
+                                          )
                                         : const PhoneStep(
                                             key: ValueKey('phone'),
                                           ),
@@ -89,15 +90,15 @@ class AuthScreen extends StatelessWidget {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // Shared widgets (previously separate classes)
-  // ---------------------------------------------------------------------------
 
-  /// Was: AuthHeader
   static Widget header() {
     return Column(
       children: [
-        Image.asset(AssetConstants.nivaLogo, width: 110, fit: BoxFit.contain),
+        Image.asset(
+          AssetConstants.nivaLogo,
+          width: 110,
+          fit: BoxFit.contain,
+        ),
         const SizedBox(height: 12),
         Text(
           'COMMUNITY APP',
@@ -139,24 +140,27 @@ class AuthScreen extends StatelessWidget {
       case AuthValidationError.empty:
       case AuthValidationError.invalidNumber:
         return 'Enter a valid Indian mobile number';
+
       case AuthValidationError.invalidLength:
         return 'Mobile number must be 10 digits';
+
       case AuthValidationError.notRegistered:
         return "This number isn't registered. Contact your community admin.";
+
       case null:
         return null;
     }
   }
 
-  /// Was: PhoneNumberField
-  static Widget phoneNumberField({required FocusNode focusNode}) {
+  static Widget phoneNumberField({
+    required FocusNode focusNode,
+  }) {
     return Consumer<AuthProvider>(
       builder: (context, auth, _) {
         final errorText = _phoneErrorText(auth.validationError);
         final hasError = errorText != null;
         final digits = auth.phoneController.text.length;
 
-        // Only this part rebuilds on focus changes.
         return ListenableBuilder(
           listenable: focusNode,
           builder: (context, _) {
@@ -166,7 +170,7 @@ class AuthScreen extends StatelessWidget {
                 ? AppColors.error
                 : focused
                 ? AppColors.brand
-                : Colors.white.withValues(alpha: 0.9);
+                : AppColors.kwhite.withValues(alpha: 0.9);
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,7 +196,7 @@ class AuthScreen extends StatelessWidget {
                       width: double.infinity,
                       height: 56,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.78),
+                        color: AppColors.kwhite.withValues(alpha: 0.78),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: borderColor,
@@ -234,9 +238,9 @@ class AuthScreen extends StatelessWidget {
                               focusNode: focusNode,
                               keyboardType:
                                   const TextInputType.numberWithOptions(
-                                    decimal: false,
-                                    signed: false,
-                                  ),
+                                decimal: false,
+                                signed: false,
+                              ),
                               textInputAction: TextInputAction.done,
                               autofillHints: const [
                                 AutofillHints.telephoneNumberNational,
@@ -248,14 +252,16 @@ class AuthScreen extends StatelessWidget {
                                 LengthLimitingTextInputFormatter(10),
                               ],
                               onChanged: (_) => auth.clearError(),
-                              onSubmitted: (_) => auth.continueAuth(context),
+                              onSubmitted: (_) =>
+                                  auth.continueAuth(context),
                               cursorColor: AppColors.brand,
-                              scrollPadding: const EdgeInsets.only(bottom: 160),
+                              scrollPadding:
+                                  const EdgeInsets.only(bottom: 160),
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                                 letterSpacing: 0.8,
-                                color: Color(0xFF222222),
+                                color: AppColors.inputText,
                               ),
                               decoration: const InputDecoration(
                                 hintText: '98765 43210',
@@ -276,11 +282,14 @@ class AuthScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          // Digit counter that turns into a tick at 10 digits.
+
                           AnimatedSwitcher(
                             duration: const Duration(milliseconds: 180),
                             transitionBuilder: (child, anim) =>
-                                ScaleTransition(scale: anim, child: child),
+                                ScaleTransition(
+                                  scale: anim,
+                                  child: child,
+                                ),
                             child: digits == 10 && !hasError
                                 ? const Icon(
                                     Icons.check_circle_rounded,
@@ -298,7 +307,9 @@ class AuthScreen extends StatelessWidget {
                                       color: AppColors.hint,
                                     ),
                                   )
-                                : const SizedBox(key: ValueKey('none')),
+                                : const SizedBox(
+                                    key: ValueKey('none'),
+                                  ),
                           ),
                           const SizedBox(width: 14),
                         ],
@@ -311,7 +322,10 @@ class AuthScreen extends StatelessWidget {
                   alignment: Alignment.topLeft,
                   child: hasError
                       ? Padding(
-                          padding: const EdgeInsets.only(top: 8, left: 4),
+                          padding: const EdgeInsets.only(
+                            top: 8,
+                            left: 4,
+                          ),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -347,7 +361,6 @@ class AuthScreen extends StatelessWidget {
     );
   }
 
-  /// Was: AuthContinueButton
   static Widget continueButton() {
     return Consumer<AuthProvider>(
       builder: (context, auth, _) {
@@ -364,35 +377,44 @@ class AuthScreen extends StatelessWidget {
                     height: 22,
                     child: CircularProgressIndicator(
                       strokeWidth: 2.4,
-                      color: Colors.white,
+                      color: AppColors.kwhite,
                     ),
                   )
-                : const Text('Continue', key: ValueKey('label')),
+                : const Text(
+                    'Continue',
+                    key: ValueKey('label'),
+                  ),
           ),
         );
       },
     );
   }
 
-  /// Was: AuthTerms
   static Widget terms() {
     return const Text(
       'By continuing, you agree to our Terms of Service\nand Privacy Policy',
       textAlign: TextAlign.center,
-      style: TextStyle(fontSize: 12, height: 1.5, color: AppColors.body),
+      style: TextStyle(
+        fontSize: 12,
+        height: 1.5,
+        color: AppColors.body,
+      ),
     );
   }
 
-  /// Was: AuthFooter
   static Widget footer() {
     final color = AppColors.brandDark.withValues(alpha: 0.8);
-
+    
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.support_agent_rounded, size: 16, color: color),
+          Icon(
+            Icons.support_agent_rounded,
+            size: 16,
+            color: color,
+          ),
           const SizedBox(width: 8),
           Flexible(
             child: Text(

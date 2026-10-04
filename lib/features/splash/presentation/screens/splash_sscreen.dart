@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:community/app/app_router.dart';
 import 'package:community/core/constants/asset_constants.dart';
 import 'package:community/core/theme/app_colors.dart';
-import 'package:community/core/widgets/glass.dart';
+import 'package:community/core/widgets/glass_morphism.dart';
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -36,12 +36,11 @@ class _SplashScreenState extends State<SplashScreen>
     final curved = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
     _fade = curved;
     _scale = Tween<double>(begin: 0.94, end: 1).animate(curved);
-
-    // Tagline starts fading in slightly after the logo.
     _textFade = CurvedAnimation(
       parent: _controller,
       curve: const Interval(0.4, 1.0, curve: Curves.easeOut),
     );
+
     _textSlide = Tween<Offset>(
       begin: const Offset(0, 0.4),
       end: Offset.zero,
@@ -67,7 +66,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEAF4F1),
+      backgroundColor: AppColors.background,
       body: GlassBackdrop(
         child: SafeArea(
           child: Stack(
@@ -76,7 +75,6 @@ class _SplashScreenState extends State<SplashScreen>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Only container on the screen: one soft glass logo card.
                     FadeTransition(
                       opacity: _fade,
                       child: ScaleTransition(

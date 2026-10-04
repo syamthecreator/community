@@ -1,8 +1,6 @@
 import 'package:community/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
-/// "Mobile number -> Admin PIN" progress. [step] is 1 or 2.
-/// Was: AuthStepper
 Widget authStepper({required int step}) {
   return Row(
     mainAxisSize: MainAxisSize.min,
@@ -25,7 +23,6 @@ Widget authStepper({required int step}) {
   );
 }
 
-/// Was: _StepDot
 Widget _stepDot({
   required int number,
   required String label,
@@ -47,7 +44,7 @@ Widget _stepDot({
           shape: BoxShape.circle,
           color: highlighted
               ? AppColors.brand
-              : Colors.white.withValues(alpha: 0.7),
+              : AppColors.kwhite.withValues(alpha: 0.7),
           border: Border.all(
             color: highlighted
                 ? AppColors.brand
@@ -55,14 +52,14 @@ Widget _stepDot({
           ),
         ),
         child: done
-            ? const Icon(Icons.check_rounded, size: 14, color: Colors.white)
+            ? const Icon(Icons.check_rounded, size: 14, color: AppColors.kwhite)
             : Text(
                 '$number',
                 style: TextStyle(
                   fontSize: 11.5,
                   fontWeight: FontWeight.w700,
                   color: active
-                      ? Colors.white
+                      ? AppColors.kwhite
                       : AppColors.brandDark.withValues(alpha: 0.6),
                 ),
               ),

@@ -3,7 +3,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-/// Fade + small upward slide. Use [delay] to stagger several widgets.
 class FadeSlideIn extends StatefulWidget {
   const FadeSlideIn({
     super.key,
@@ -67,7 +66,6 @@ class _FadeSlideInState extends State<FadeSlideIn>
   }
 }
 
-/// Horizontal shake. Increase [trigger] to play it (e.g. on a validation error).
 class Shake extends StatefulWidget {
   const Shake({super.key, required this.trigger, required this.child});
 
@@ -110,7 +108,6 @@ class _ShakeState extends State<Shake> with SingleTickerProviderStateMixin {
   }
 }
 
-/// Soft fade + sideways slide between screens.
 class FadeSlideRoute<T> extends PageRouteBuilder<T> {
   FadeSlideRoute({required WidgetBuilder builder, super.settings})
     : super(

@@ -1,5 +1,5 @@
 import 'package:community/core/widgets/app_back_button.dart';
-import 'package:community/core/widgets/glass.dart';
+import 'package:community/core/widgets/glass_morphism.dart';
 import 'package:community/core/widgets/motion.dart';
 import 'package:community/features/authentication/presentation/screens/verfication_screen.dart';
 import 'package:community/features/authentication/presentation/widgets/auth_step.dart';
@@ -86,9 +86,3 @@ class _PinStepState extends State<PinStep> {
     );
   }
 }
-
-// ---- PinHeader, PinInput, _PinBox, PinVerifyButton, PinHelp ----
-// Paste them EXACTLY as in your current verfication_screen.dart.
-// ONE change, inside PinHeader: the "Change" chip's onTap becomes
-//   onTap: () => context.read<AuthProvider>().backToPhone(),
-// instead of Navigator.maybePop(context).

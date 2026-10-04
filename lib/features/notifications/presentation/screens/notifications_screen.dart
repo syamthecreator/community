@@ -2,7 +2,6 @@ import 'package:community/core/constants/asset_constants.dart';
 import 'package:community/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
-// ───────────────────────── Model ─────────────────────────
 enum NotificationType {
   request,
   announcement,
@@ -168,26 +167,19 @@ List<AppNotification> mockNotifications() {
     ),
   ];
 }
-
-// ───────────────────────── Store ─────────────────────────
 class NotificationStore extends ChangeNotifier {
   NotificationStore._();
 
   static final NotificationStore instance = NotificationStore._();
-
   final List<AppNotification> _items = mockNotifications();
-
   List<AppNotification> get notifications => List.unmodifiable(_items);
-
   int get unreadCount => _items.where((n) => !n.isRead).length;
+
 
   void _setRead(String id, bool read) {
     final index = _items.indexWhere((n) => n.id == id);
-
     if (index == -1) return;
-
     if (_items[index].isRead == read) return;
-
     _items[index] = _items[index].copyWith(isRead: read);
 
     notifyListeners();
@@ -236,7 +228,6 @@ class NotificationStore extends ChangeNotifier {
   }
 }
 
-// ───────────────────────── Screen ─────────────────────────
 enum _Filter { all, important, normal }
 
 extension on _Filter {
@@ -333,11 +324,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             listenable: _store,
             builder: (context, _) {
               final all = _store.notifications;
-
               final unread = _store.unreadCount;
-
               final important = all.where((n) => n.isImportant).length;
-
               final items = all.where(_matches).toList();
 
               return Column(
@@ -369,7 +357,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               '${unread == 1 ? 'notification' : 'notifications'}';
 
     final circleStyle = IconButton.styleFrom(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.kwhite,
       side: BorderSide(color: AppColors.border.withValues(alpha: 0.4)),
       fixedSize: const Size(44, 44),
     );
@@ -485,7 +473,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         height: 42,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected ? AppColors.brand : Colors.white,
+          color: selected ? AppColors.brand : AppColors.kwhite,
           borderRadius: BorderRadius.circular(22),
           border: Border.all(
             color: selected
@@ -501,7 +489,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: selected ? Colors.white : AppColors.title,
+                color: selected ? AppColors.kwhite : AppColors.title,
               ),
             ),
 
@@ -511,7 +499,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1.5),
               decoration: BoxDecoration(
                 color: selected
-                    ? Colors.white.withValues(alpha: 0.25)
+                    ? AppColors.kwhite.withValues(alpha: 0.25)
                     : AppColors.brand.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -520,7 +508,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 style: TextStyle(
                   fontSize: 11.5,
                   fontWeight: FontWeight.w700,
-                  color: selected ? Colors.white : AppColors.brand,
+                  color: selected ? AppColors.kwhite : AppColors.brand,
                 ),
               ),
             ),
@@ -552,8 +540,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         : AppColors.brand;
 
     final Color cardColor = notification.isRead
-        ? Colors.white
-        : Color.alphaBlend(AppColors.brand.withValues(alpha: 0.06), Colors.white);
+        ? AppColors.kwhite
+        : Color.alphaBlend(AppColors.brand.withValues(alpha: 0.06), AppColors.kwhite);
 
     return TweenAnimationBuilder<double>(
       key: ValueKey(notification.id),
@@ -690,7 +678,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return PopupMenuButton<_MenuAction>(
       tooltip: 'More',
       padding: EdgeInsets.zero,
-      color: Colors.white,
+      color: AppColors.kwhite,
       surfaceTintColor: Colors.transparent,
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
