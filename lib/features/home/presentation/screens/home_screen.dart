@@ -216,6 +216,7 @@ class _HomeScreenViewState extends State<_HomeScreenView>
   final _picker = ImagePicker();
   final _composerFocus = FocusNode();
   final Set<_Item> _selected = {};
+  
 
   bool _showJump = false;
   bool _pinnedVisible = true;
@@ -422,7 +423,6 @@ class _HomeScreenViewState extends State<_HomeScreenView>
   Future<void> _deleteSelected() async {
     final items = _selected.toList();
 
-    // SOS alerts can never be deleted.
     if (items.any((i) => i.type == _Type.sos)) {
       _toast("SOS alerts can't be deleted");
       return;
@@ -644,7 +644,6 @@ class _HomeScreenViewState extends State<_HomeScreenView>
           builder: (_) => _ImagePreviewScreen(path: path, source: source),
         ),
       );
-      // Flutter restores focus when a screen closes; cancel that here.
       _dismissKeyboard();
       if (result == null || !mounted) return;
       if (result.retake) continue;
@@ -1001,6 +1000,7 @@ class _HomeScreenViewState extends State<_HomeScreenView>
                       ),
                       if (!keyboardOpen)
                         _bottomNav(
+                          context,
                           hold: _hold,
                           tab: _tab,
                           onHome: () => _selectTab(0),
@@ -1084,10 +1084,10 @@ Widget _homeBackdrop({required Widget child}) {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                AppColors.homeGradientStart,
-                AppColors.homeGradientBlue,
-                AppColors.homeGradientPurple,
-                AppColors.homeGradientEnd,
+                AppColors.gradientStart,
+                AppColors.gradientBlue,
+                AppColors.gradientPurple,
+                AppColors.gradientEnd,
               ],
               stops: [0.0, 0.4, 0.7, 1.0],
             ),
@@ -1371,7 +1371,7 @@ Widget _header(
     radius: const BorderRadius.vertical(bottom: Radius.circular(0)),
     blur: 28,
     opacity: 0.66,
-    tint: AppColors.headerTint,
+    tint: AppColors.tint,
     borderOpacity: 0.95,
     padding: EdgeInsets.fromLTRB(16, top + 10, 16, 12),
     child: Row(
@@ -1928,7 +1928,7 @@ Widget _selectionBar(
     radius: BorderRadius.zero,
     blur: 28,
     opacity: 0.66,
-    tint: AppColors.headerTint,
+    tint: AppColors.tint,
     borderOpacity: 0.95,
     padding: EdgeInsets.fromLTRB(8, top + 10, 8, 12),
     child: SizedBox(
@@ -1994,7 +1994,7 @@ Widget _glassMenu(BuildContext context, {required List<_GlassMenuItem> items}) {
         radius: BorderRadius.circular(20),
         blur: 24,
         opacity: 0.88,
-        tint: AppColors.headerTint,
+        tint: AppColors.tint,
         shadowColor: AppColors.brand,
         borderOpacity: 0.95,
         padding: const EdgeInsets.all(6),
@@ -2203,7 +2203,6 @@ Widget _sosCard({required _Item item}) {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header (same structure as the report card).
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -2276,7 +2275,6 @@ Widget _sosCard({required _Item item}) {
             ],
           ),
         ),
-        // Body
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
           child: Column(
@@ -2480,7 +2478,6 @@ Widget _bubble({required _Item item}) {
   final accent = isAdmin ? AppColors.info : AppColors.slate;
   final fg = mine ? Colors.white : AppColors.title;
 
-  // mine -> solid green | admin -> blue glass | everyone else -> white glass
   final Gradient gradient = mine
       ? const LinearGradient(
           begin: Alignment.topLeft,
@@ -3002,12 +2999,15 @@ Widget _composer({
 
 const double _bottomNavBarHeight = 100;
 
-Widget _bottomNav({
+Widget _bottomNav(
+  BuildContext context, {
   required AnimationController hold,
   required int tab,
   required VoidCallback onHome,
   required VoidCallback onReport,
 }) {
+  final bottomInset = MediaQuery.paddingOf(context).bottom;
+
   return Padding(
     padding: const EdgeInsets.only(top: 5),
     child: Stack(
@@ -3017,13 +3017,12 @@ Widget _bottomNav({
           radius: const BorderRadius.vertical(top: Radius.circular(28)),
           blur: 28,
           opacity: 0.66,
-          tint: AppColors.headerTint,
+          tint: AppColors.tint,
           borderOpacity: 0.95,
-          child: Container(
-            height: _bottomNavBarHeight,
-            padding: const EdgeInsets.all(3),
-            child: Container(
-              decoration: BoxDecoration(),
+          child: SizedBox(
+            height: _bottomNavBarHeight + bottomInset,
+            child: Padding(
+              padding: EdgeInsets.only(bottom: bottomInset),
               child: Row(
                 children: [
                   Expanded(
@@ -3034,7 +3033,7 @@ Widget _bottomNav({
                       onTap: onHome,
                     ),
                   ),
-                  const Expanded(child: SizedBox()), // space for SOS
+                  const Expanded(child: SizedBox()),
                   Expanded(
                     child: _navItem(
                       icon: Icons.description_outlined,
@@ -3048,8 +3047,9 @@ Widget _bottomNav({
             ),
           ),
         ),
+
         Positioned(
-          top: -17,
+          top: 0,
           left: 0,
           right: 0,
           child: Center(child: _SosButton(hold: hold)),
@@ -3073,26 +3073,14 @@ Widget _navItem({
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 220),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 3),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(28),
-          gradient: selected
-              ? LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    AppColors.brand.withValues(alpha: 0.14),
-                    AppColors.brand.withValues(alpha: 0.03),
-                  ],
-                )
-              : null,
-        ),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(28)),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             AnimatedContainer(
               duration: const Duration(milliseconds: 220),
-              width: 36,
-              height: 36,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: selected
@@ -3117,16 +3105,6 @@ Widget _navItem({
                 fontSize: 12.5,
                 fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
                 color: color,
-              ),
-            ),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 220),
-              margin: const EdgeInsets.only(top: 2),
-              width: selected ? 14 : 0,
-              height: 3,
-              decoration: BoxDecoration(
-                color: AppColors.brand,
-                borderRadius: BorderRadius.circular(3),
               ),
             ),
           ],
@@ -3379,10 +3357,6 @@ Widget _sosHoldOverlay({required AnimationController hold}) {
   );
 }
 
-// Paste this over the existing `_MembersScreen` + `_MembersScreenState`
-// in home_screen.dart (it uses the private _glass / _homeBackdrop helpers
-// from that file, so it must stay in the same file).
-
 class _MembersScreen extends StatefulWidget {
   const _MembersScreen();
 
@@ -3397,7 +3371,6 @@ class _MembersScreenState extends State<_MembersScreen> {
   @override
   void initState() {
     super.initState();
-    // Replace with your real members fetch.
     Future.delayed(const Duration(milliseconds: 800), () {
       if (mounted) setState(() => _loading = false);
     });
@@ -3408,8 +3381,6 @@ class _MembersScreenState extends State<_MembersScreen> {
     _search.dispose();
     super.dispose();
   }
-
-  // ───────── small building blocks ─────────
 
   Widget _circle(Widget inner, Color color, {double size = 44}) {
     return Container(
@@ -3439,7 +3410,6 @@ class _MembersScreenState extends State<_MembersScreen> {
     );
   }
 
-  /// Fade + slide-up entrance, staggered by [index].
   Widget _entrance(int index, Widget child) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
@@ -3709,7 +3679,7 @@ class _MembersScreenState extends State<_MembersScreen> {
       radius: BorderRadius.zero,
       blur: 28,
       opacity: 0.66,
-      tint: AppColors.headerTint,
+      tint: AppColors.tint,
       borderOpacity: 0.95,
       padding: EdgeInsets.fromLTRB(8, top + 10, 16, 12),
       child: Row(
@@ -3858,7 +3828,6 @@ class _MembersScreenState extends State<_MembersScreen> {
 
         if (rooms.isEmpty && !showAdmin && !showMyRoom) return _empty();
 
-        // Group by floor (first digit of the room number).
         final byFloor = <String, List<String>>{};
         for (final r in rooms) {
           byFloor.putIfAbsent(r[0], () => []).add(r);

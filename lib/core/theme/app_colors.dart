@@ -28,11 +28,11 @@ class AppColors {
   static const Color sun = Color(0xFFF6B04A);
   static const Color coral = Color(0xFFFF7A7A);
   static const Color glassShadow = Color(0xFF1B5E52);
-  static const Color homeGradientStart = Color(0xFFD2F3E9);
-  static const Color homeGradientBlue = Color(0xFFE3EEFA);
-  static const Color homeGradientPurple = Color(0xFFEFEBFA);
-  static const Color homeGradientEnd = Color(0xFFF1F6F4);
-  static const Color headerTint = Color(0xFFF1FBF8);
+  static const Color gradientStart = Color(0xFFD2F3E9);
+  static const Color gradientBlue = Color(0xFFE3EEFA);
+  static const Color gradientPurple = Color(0xFFEFEBFA);
+  static const Color gradientEnd = Color(0xFFF1F6F4);
+  static const Color tint = Color(0xFFF1FBF8);
   static const Color sosRed = Color(0xFFFF5252);
   static const Color sosDarkRed = Color(0xFFE41B1B);
   static const Color sosDeepRed = Color(0xFFC20F0F);

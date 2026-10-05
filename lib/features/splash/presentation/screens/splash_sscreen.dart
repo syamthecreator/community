@@ -95,7 +95,6 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                     const SizedBox(height: 28),
 
-                    // Plain text tagline, no container.
                     FadeTransition(
                       opacity: _textFade,
                       child: SlideTransition(

@@ -6,7 +6,6 @@ import 'package:community/core/widgets/glass_morphism.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-// Mock data. These details are set by the admin and are read-only here.
 const String _mockUserName = 'Nithya Arun';
 const String _mockRole = 'Community Member';
 const String _mockCommunity = 'Green Valley Apartments';
@@ -491,7 +490,6 @@ Widget _glassSheet({required Widget child}) {
 }
 
 
-/// Was: _DetailRow
 Widget _detailRow({
   required IconData icon,
   required String label,
@@ -539,7 +537,6 @@ Widget _detailRow({
   );
 }
 
-/// Was: _MenuRow
 Widget _menuRow({
   required IconData icon,
   required String title,
@@ -594,7 +591,6 @@ _helpContacts = [
   ),
 ];
 
-/// Was: _HelpContent
 Widget _helpContent() {
   return SingleChildScrollView(
     padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),

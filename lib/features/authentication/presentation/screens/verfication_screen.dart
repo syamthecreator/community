@@ -127,7 +127,6 @@ String _formatPhone(String phoneNumber) => phoneNumber.length == 10
     ? '+91 ${phoneNumber.substring(0, 5)} ${phoneNumber.substring(5)}'
     : '+91 $phoneNumber';
 
-/// Was: PinHeader
 Widget pinHeader(BuildContext context, {required String phoneNumber}) {
   return Column(
     children: [
@@ -239,7 +238,6 @@ Widget pinInput({
                     height: 62,
                     child: Stack(
                       children: [
-                        // Hidden input field.
                         Positioned.fill(
                           child: IgnorePointer(
                             child: Semantics(
@@ -257,7 +255,6 @@ Widget pinInput({
                                     AuthProvider.pinLength,
                                   ),
                                 ],
-                                // Auto-verify as soon as the last digit is in.
                                 onChanged: (value) {
                                   if (value.length == AuthProvider.pinLength) {
                                     auth.verifyPinAndNavigate(context);

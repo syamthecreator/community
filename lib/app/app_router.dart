@@ -1,3 +1,4 @@
+import 'package:community/core/theme/app_colors.dart';
 import 'package:community/features/authentication/presentation/screens/auth_screen.dart';
 import 'package:community/features/home/presentation/screens/home_screen.dart';
 import 'package:community/features/notifications/presentation/screens/notifications_screen.dart';
@@ -29,7 +30,7 @@ class AppRouter {
       case notifications:
         return MaterialPageRoute(
           builder: (context) => Scaffold(
-            backgroundColor: Colors.white,
+            backgroundColor: AppColors.kwhite,
             body: NotificationsScreen(onBack: () => Navigator.pop(context)),
           ),
         );
@@ -37,7 +38,7 @@ class AppRouter {
       case profile:
         return MaterialPageRoute(
           builder: (context) => Scaffold(
-            backgroundColor: Colors.white,
+            backgroundColor: AppColors.kwhite,
             body: ProfileScreen(onBack: () => Navigator.pop(context)),
           ),
         );

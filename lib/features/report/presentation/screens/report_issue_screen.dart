@@ -118,7 +118,6 @@ const List<_Category> _categories = [
   ),
 ];
 
-
 class ReportIssueView extends StatefulWidget {
   final bool startWithCustom;
   final ValueChanged<ReportResult> onSubmitted;
@@ -142,7 +141,7 @@ class ReportIssueViewState extends State<ReportIssueView> {
   final TextEditingController _noteController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
 
-  int _step = 0; 
+  int _step = 0;
   _Category? _category;
   String? _issue;
   XFile? _photo;
@@ -393,7 +392,6 @@ class ReportIssueViewState extends State<ReportIssueView> {
     }
   }
 
-
   Widget _buildHeader() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 20, 0),
@@ -493,7 +491,6 @@ class ReportIssueViewState extends State<ReportIssueView> {
 
   Widget _buildCategoryStep() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -607,7 +604,9 @@ class ReportIssueViewState extends State<ReportIssueView> {
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.16),
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.kwhite.withValues(alpha: 0.7)),
+                border: Border.all(
+                  color: AppColors.kwhite.withValues(alpha: 0.7),
+                ),
               ),
               child: Icon(category.icon, color: color, size: 24),
             ),
@@ -631,7 +630,6 @@ class ReportIssueViewState extends State<ReportIssueView> {
     );
   }
 
- 
   Widget _buildDetailsStep() {
     final category = _category!;
 
@@ -1093,9 +1091,14 @@ class ReportIssueViewState extends State<ReportIssueView> {
           blur: 0,
           opacity: selected ? 0.70 : 0.55,
           tint: selected
-              ? Color.alphaBlend(color.withValues(alpha: 0.18), AppColors.kwhite)
+              ? Color.alphaBlend(
+                  color.withValues(alpha: 0.18),
+                  AppColors.kwhite,
+                )
               : AppColors.kwhite,
-          borderColor: selected ? color : AppColors.kwhite.withValues(alpha: 0.85),
+          borderColor: selected
+              ? color
+              : AppColors.kwhite.withValues(alpha: 0.85),
           shadow: false,
           child: Row(
             children: [
@@ -1218,7 +1221,6 @@ class ReportIssueViewState extends State<ReportIssueView> {
     return Divider(height: 1, color: AppColors.border.withValues(alpha: 0.25));
   }
 
-
   Widget _buildSuccess() {
     final adminOnly = _visibility == ReportVisibility.adminOnly;
 
@@ -1338,7 +1340,7 @@ class ReportIssueViewState extends State<ReportIssueView> {
       radius: const BorderRadius.vertical(top: Radius.circular(24)),
       blur: 24,
       opacity: 0.60,
-      tint: AppColors.headerTint,
+      tint: AppColors.tint,
       shadow: false,
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
       child: child,

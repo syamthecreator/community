@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 
 enum AuthValidationError { empty, invalidLength, invalidNumber, notRegistered }
 
-// NEW
 enum AuthFlowStep { phone, pin }
 
 class AuthProvider extends ChangeNotifier {
@@ -14,22 +13,18 @@ class AuthProvider extends ChangeNotifier {
   static const int maxPinAttempts = 5;
   static const int lockoutSeconds = 30;
 
-  // Demo PIN. Replace with the admin-issued PIN check from your API.
   static const String mockPin = '1234';
 
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController pinController = TextEditingController();
 
-  // Flow state (NEW)
   AuthFlowStep _step = AuthFlowStep.phone;
   bool _isPhoneVerified = false;
 
-  // Phone state
   AuthValidationError? _validationError;
   bool _isLoading = false;
   int _phoneErrorTick = 0;
 
-  // PIN state
   bool _pinWrong = false;
   bool _isVerifying = false;
   bool _pinVerified = false;
@@ -43,12 +38,9 @@ class AuthProvider extends ChangeNotifier {
     pinController.addListener(_onPinChanged);
   }
 
-  // ---------------------------------------------------------------
-  // Getters
-  // ---------------------------------------------------------------
 
-  AuthFlowStep get step => _step; // NEW
-  bool get isPhoneVerified => _isPhoneVerified; // NEW
+  AuthFlowStep get step => _step;
+  bool get isPhoneVerified => _isPhoneVerified; 
 
   AuthValidationError? get validationError => _validationError;
   bool get isLoading => _isLoading;
@@ -65,16 +57,12 @@ class AuthProvider extends ChangeNotifier {
   bool get isPinReady =>
       pinController.text.length == pinLength && !_isVerifying && !isLocked;
 
-  /// "0:27" style countdown while locked.
   String get lockCountdown {
     final m = _lockSecondsLeft ~/ 60;
     final s = (_lockSecondsLeft % 60).toString().padLeft(2, '0');
     return '$m:$s';
   }
 
-  // ---------------------------------------------------------------
-  // Phone
-  // ---------------------------------------------------------------
 
   void _onPhoneChanged() {
     _validationError = null;
@@ -105,10 +93,8 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Replace with a real lookup: is this number registered by an admin?
   Future<bool> _isRegistered(String phone) async => true;
 
-  // CHANGED: no Navigator.push. Shows loader -> tick -> swaps to PIN step.
   Future<void> continueAuth(BuildContext context) async {
     if (_isLoading || _isPhoneVerified) return;
 
@@ -124,10 +110,9 @@ class AuthProvider extends ChangeNotifier {
       if (!registered) {
         _validationError = AuthValidationError.notRegistered;
         _phoneErrorTick++;
-        return; // finally clears the loader
+        return; 
       }
 
-      // Registered: loader -> tick on the button.
       HapticFeedback.lightImpact();
       _isLoading = false;
       _isPhoneVerified = true;
@@ -140,7 +125,6 @@ class AuthProvider extends ChangeNotifier {
         return;
       }
 
-      // Swap the content in place. No route change.
       _isPhoneVerified = false;
       _step = AuthFlowStep.pin;
     } finally {
@@ -149,9 +133,8 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // NEW: used by the "Change" chip, back button and system back.
   void backToPhone() {
-    pinController.clear(); // fires the listener, so set flags after this
+    pinController.clear(); 
     _pinWrong = false;
     _isVerifying = false;
     _pinVerified = false;
@@ -160,16 +143,12 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ---------------------------------------------------------------
-  // PIN
-  // ---------------------------------------------------------------
 
   void _onPinChanged() {
     _pinWrong = false;
     notifyListeners();
   }
 
-  /// Call when the PIN step opens. Keeps an active lockout running.
   void initializePin() {
     pinController.clear();
     _pinWrong = false;
@@ -186,7 +165,6 @@ class AuthProvider extends ChangeNotifier {
     _isVerifying = true;
     notifyListeners();
 
-    // Replace with the real PIN check.
     await Future<void>.delayed(const Duration(milliseconds: 600));
 
     if (code != mockPin) {
@@ -210,7 +188,7 @@ class AuthProvider extends ChangeNotifier {
 
   void _handleWrongPin() {
     HapticFeedback.mediumImpact();
-    pinController.clear(); // fires the listener, so set flags after this
+    pinController.clear(); 
     _isVerifying = false;
     _pinAttempts++;
     _pinErrorTick++;

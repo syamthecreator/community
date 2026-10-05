@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 const Color _skBase = Color(0xFFD6E5E0);
 const Color _skHighlight = Color(0xFFF3FAF8);
 
-/// Animated shimmer that sweeps across everything inside [child].
 class SkeletonShimmer extends StatefulWidget {
   const SkeletonShimmer({super.key, required this.child});
   final Widget child;
@@ -56,7 +55,6 @@ class _SlideTransform extends GradientTransform {
       Matrix4.translationValues(bounds.width * (progress * 2 - 1), 0, 0);
 }
 
-/// Rounded rectangle placeholder.
 class SkeletonBox extends StatelessWidget {
   const SkeletonBox({
     super.key,
@@ -79,7 +77,6 @@ class SkeletonBox extends StatelessWidget {
   );
 }
 
-/// Circle placeholder (avatars, icons).
 class SkeletonCircle extends StatelessWidget {
   const SkeletonCircle({super.key, this.size = 36});
   final double size;
@@ -92,7 +89,6 @@ class SkeletonCircle extends StatelessWidget {
   );
 }
 
-/// Swaps between [skeleton] and [child] with a soft fade.
 class SkeletonSwitcher extends StatelessWidget {
   const SkeletonSwitcher({
     super.key,
@@ -120,9 +116,7 @@ class SkeletonSwitcher extends StatelessWidget {
   }
 }
 
-// ───────────────────────── Ready-made presets ─────────────────────────
 
-/// Generic list: avatar + two lines. Good for members, notifications, etc.
 class SkeletonList extends StatelessWidget {
   const SkeletonList({super.key, this.count = 8});
   final int count;
@@ -154,7 +148,6 @@ class SkeletonList extends StatelessWidget {
   }
 }
 
-/// Chat-style skeleton: bubbles alternating left / right with avatars.
 class SkeletonChatList extends StatelessWidget {
   const SkeletonChatList({super.key});
 
