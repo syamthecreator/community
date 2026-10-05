@@ -11,6 +11,7 @@ import 'package:community/features/report/presentation/screens/report_issue_scre
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:translator/translator.dart' as gt show GoogleTranslator;
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -216,7 +217,6 @@ class _HomeScreenViewState extends State<_HomeScreenView>
   final _picker = ImagePicker();
   final _composerFocus = FocusNode();
   final Set<_Item> _selected = {};
-  
 
   bool _showJump = false;
   bool _pinnedVisible = true;
@@ -225,18 +225,33 @@ class _HomeScreenViewState extends State<_HomeScreenView>
   int _tab = 0;
   GlobalKey<ReportIssueViewState> _reportKey = GlobalKey();
   bool _reportSubmitted = false;
-
   bool _loading = true;
+
+  final Map<String, String> _translations = {};
+  final Set<String> _showTranslated = {}; // texts currently shown in English
+  final Set<String> _translating = {};
+
+  final _webTranslator = gt.GoogleTranslator();
 
   Future<void> _load() async {
     await Future.delayed(const Duration(milliseconds: 1200));
+
     if (!mounted) return;
+
     setState(() => _loading = false);
     _scrollToEnd();
   }
 
+  static final RegExp _nonLatin = RegExp(r'[\u0370-\u1FFF\u2E80-\uD7FF]');
+
+  bool _canTranslate(_Item item) {
+    if (item.isMine) return false;
+    if (item.text.trim().isEmpty) return false;
+    return _nonLatin.hasMatch(item.text);
+  }
+
   late final AnimationController _hold =
-      AnimationController(vsync: this, duration: const Duration(seconds: 3))
+      AnimationController(vsync: this, duration: const Duration(seconds: 1))
         ..addStatusListener((s) {
           if (s == AnimationStatus.completed) _sosSent();
         });
@@ -273,7 +288,8 @@ class _HomeScreenViewState extends State<_HomeScreenView>
       type: _Type.member,
       userId: '214',
       time: '9:30 AM',
-      text: 'ലിഫ്റ്റ് ഇന്ന് ശരിയാകുമോ?',
+      // text: 'ലിഫ്റ്റ് ഇന്ന് ശരിയാകുമോ?',
+      text: 'أين أنت؟',
     ),
     const _Item(
       day: 'Today',
@@ -301,6 +317,56 @@ class _HomeScreenViewState extends State<_HomeScreenView>
       time: '10:20 AM',
       text: 'Thanks for the update!',
     ),
+const _Item(
+    day: 'Today',
+    type: _Type.member,
+    userId: '214',
+    time: '9:30 AM',
+    text: 'ഇന്ന് വൈകുന്നേരം എല്ലാവരും മീറ്റിംഗിന് വരണം.',
+  ),
+  const _Item(
+    day: 'Today',
+    type: _Type.member,
+    userId: '118',
+    time: '9:35 AM',
+    text: 'आप लोग आज शाम मीटिंग के लिए आना।',
+  ),
+  const _Item(
+    day: 'Today',
+    type: _Type.member,
+    userId: '305',
+    time: '9:40 AM',
+    text: 'இன்று மாலை எல்லோரும் கூட்டத்திற்கு வரவும்.',
+  ),
+  const _Item(
+    day: 'Today',
+    type: _Type.member,
+    userId: '407',
+    time: '9:45 AM',
+    text: 'ಇಂದು ಸಂಜೆ ಎಲ್ಲರೂ ಮೀಟಿಂಗ್‌ಗೆ ಬನ್ನಿ.',
+  ),
+  const _Item(
+    day: 'Today',
+    type: _Type.member,
+    userId: '512',
+    time: '9:50 AM',
+    text: 'اليوم مساءً سيأتي الجميع إلى الاجتماع.',
+  ),
+  const _Item(
+    day: 'Today',
+    type: _Type.member,
+    userId: '623',
+    time: '9:55 AM',
+    text: 'ఈరోజు సాయంత్రం అందరూ సమావేశానికి రావాలి.',
+  ),
+  const _Item(
+    day: 'Today',
+    type: _Type.member,
+    userId: '731',
+    time: '10:00 AM',
+    text: 'The water supply will be available from 6 PM.',
+  ),
+
   ];
 
   _Item? get _pinned {
@@ -356,6 +422,18 @@ class _HomeScreenViewState extends State<_HomeScreenView>
     } else {
       _scroll.jumpTo(end);
     }
+  }
+
+  void _onTranslateTap(_Item item) {
+    final key = item.text;
+    if (_translations.containsKey(key)) {
+      // Already translated once: just toggle, no network call.
+      setState(() {
+        if (!_showTranslated.remove(key)) _showTranslated.add(key);
+      });
+      return;
+    }
+    _translateMessage(item);
   }
 
   void _scrollToEnd() {
@@ -418,6 +496,43 @@ class _HomeScreenViewState extends State<_HomeScreenView>
     if (!mounted) return;
     _clearSelection();
     _toast('Copied');
+  }
+
+  // translation functions
+
+  Future<void> _translateMessage(_Item item) async {
+    final original = item.text.trim();
+    if (original.isEmpty || item.isMine) return;
+    if (_translations.containsKey(item.text)) return;
+    if (_translating.contains(item.text)) return;
+
+    setState(() => _translating.add(item.text));
+
+    try {
+      final result = await _webTranslator
+          .translate(original, from: 'auto', to: 'en')
+          .timeout(const Duration(seconds: 10));
+
+      if (!mounted) return;
+
+      final alreadyEnglish =
+          result.sourceLanguage.code == 'en' ||
+          result.text.trim().toLowerCase() == original.toLowerCase();
+
+      setState(() {
+        _translating.remove(item.text);
+        if (!alreadyEnglish) {
+          _translations[item.text] = result.text;
+          _showTranslated.add(item.text); // show English immediately
+        }
+      });
+
+      if (alreadyEnglish) _toast('Already in English');
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _translating.remove(item.text));
+      _toast('Translation unavailable');
+    }
   }
 
   Future<void> _deleteSelected() async {
@@ -850,6 +965,13 @@ class _HomeScreenViewState extends State<_HomeScreenView>
                           onTap: () => _onRowTap(_items[i]),
                           onLongPress: () => _onRowLongPress(_items[i]),
                           onReply: () => _swipeReply(_items[i]),
+                          translated: _translations[_items[i].text],
+                          showTranslated: _showTranslated.contains(
+                            _items[i].text,
+                          ),
+                          translating: _translating.contains(_items[i].text),
+                          onTranslate: () => _onTranslateTap(_items[i]),
+                          canTranslate: _canTranslate(_items[i]),
                         ),
                       ],
                     ],
@@ -1069,6 +1191,55 @@ Widget _attachSheet(BuildContext context) {
             const SizedBox(height: 8),
           ],
         ),
+      ),
+    ),
+  );
+}
+
+Widget _translationButton({
+  required bool showingTranslated,
+  required bool translating,
+  required bool mine,
+  required VoidCallback onTap,
+}) {
+  final color = mine ? Colors.white70 : AppColors.brand;
+
+  return Padding(
+    padding: const EdgeInsets.only(top: 5),
+    child: GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: translating ? null : onTap,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (translating)
+            SizedBox(
+              width: 12,
+              height: 12,
+              child: CircularProgressIndicator(strokeWidth: 1.5, color: color),
+            )
+          else
+            Icon(
+              showingTranslated
+                  ? Icons.undo_rounded
+                  : Icons.translate_rounded,
+              size: 15,
+              color: color,
+            ),
+          const SizedBox(width: 5),
+          Text(
+            translating
+                ? 'Translating...'
+                : showingTranslated
+                    ? 'Show original'
+                    : 'Translate',
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
       ),
     ),
   );
@@ -1709,6 +1880,11 @@ Widget _messageRow(
   required VoidCallback onTap,
   required VoidCallback onLongPress,
   required VoidCallback onReply,
+  required String? translated,
+  required bool translating,
+  required VoidCallback onTranslate,
+  required bool canTranslate,
+  required bool showTranslated,
 }) {
   final mine = item.isMine;
   final maxW = MediaQuery.of(context).size.width * 0.72;
@@ -1719,7 +1895,14 @@ Widget _messageRow(
       : switch (item.type) {
           _Type.report => _reportCard(item: item),
           _Type.sos => _sosCard(item: item),
-          _ => _bubble(item: item),
+          _ => _bubble(
+            item: item,
+            translated: translated,
+            showTranslated: showTranslated,
+            translating: translating,
+            onTranslate: onTranslate,
+            canTranslate: canTranslate,
+          ),
         };
 
   return GestureDetector(
@@ -2472,11 +2655,19 @@ Widget _quoteBlock({
   );
 }
 
-Widget _bubble({required _Item item}) {
+Widget _bubble({
+  required _Item item,
+  required String? translated,
+  required bool showTranslated,
+  required bool translating,
+  required VoidCallback onTranslate,
+  required bool canTranslate,
+}) {
   final mine = item.isMine;
   final isAdmin = item.isAdmin;
   final accent = isAdmin ? AppColors.info : AppColors.slate;
   final fg = mine ? Colors.white : AppColors.title;
+  final shown = (showTranslated && translated != null) ? translated : item.text;
 
   final Gradient gradient = mine
       ? const LinearGradient(
@@ -2562,11 +2753,19 @@ Widget _bubble({required _Item item}) {
             onDark: mine,
           ),
         if (item.hasImage) _imageBlock(path: item.photoPath),
-        if (item.text.isNotEmpty)
-          Text(
-            item.text,
-            style: TextStyle(fontSize: 14.5, height: 1.38, color: fg),
-          ),
+        if (item.text.isNotEmpty) ...[
+  Text(
+    shown,
+    style: TextStyle(fontSize: 14.5, height: 1.38, color: fg),
+  ),
+  if (canTranslate || translated != null || translating)
+    _translationButton(
+      showingTranslated: showTranslated && translated != null,
+      translating: translating,
+      mine: mine,
+      onTap: onTranslate,
+    ),
+],
         const SizedBox(height: 3),
         Align(
           alignment: Alignment.centerRight,
@@ -3316,36 +3515,144 @@ Widget _sosHoldOverlay({required AnimationController hold}) {
       child: AnimatedBuilder(
         animation: hold,
         builder: (_, _) {
-          if (hold.value == 0) return const SizedBox.shrink();
-          return Container(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                colors: [
-                  AppColors.error.withValues(alpha: 0.30 * hold.value),
-                  AppColors.error.withValues(alpha: 0.55 * hold.value),
-                ],
-              ),
-            ),
-            alignment: Alignment.center,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+          final v = hold.value;
+          if (v == 0) return const SizedBox.shrink();
+
+          // Fades in quickly during the first ~0.75s.
+          final fade = Curves.easeOut.transform((v * 4).clamp(0.0, 1.0));
+          final seconds = (3 - v * 3).ceil().clamp(1, 3);
+
+          const shadow = [
+            Shadow(color: Color(0x66000000), blurRadius: 12),
+          ];
+
+          return Opacity(
+            opacity: fade,
+            child: Stack(
+              fit: StackFit.expand,
               children: [
-                Text(
-                  '${(3 - hold.value * 3).ceil()}',
-                  style: const TextStyle(
-                    fontSize: 84,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.kwhite,
-                    decoration: TextDecoration.none,
+                // Dark scrim: dims the whole home screen.
+                ColoredBox(
+                  color: const Color(0xFF14060A).withValues(alpha: 0.82),
+                ),
+                // Red glow that grows as the hold progresses.
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      radius: 0.9,
+                      colors: [
+                        AppColors.error.withValues(alpha: 0.20 + 0.35 * v),
+                        AppColors.error.withValues(alpha: 0.0),
+                      ],
+                    ),
                   ),
                 ),
-                const Text(
-                  'Keep holding to send SOS',
-                  style: TextStyle(
-                    color: AppColors.kwhite,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    decoration: TextDecoration.none,
+                Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.error.withValues(alpha: 0.25),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.35),
+                          ),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.notifications_active_rounded,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                            SizedBox(width: 6),
+                            Text(
+                              'SOS ALERT',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.2,
+                                decoration: TextDecoration.none,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+                      SizedBox(
+                        width: 190,
+                        height: 190,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            SizedBox.expand(
+                              child: CircularProgressIndicator(
+                                value: 1,
+                                strokeWidth: 8,
+                                color: Colors.white.withValues(alpha: 0.18),
+                              ),
+                            ),
+                            SizedBox.expand(
+                              child: CircularProgressIndicator(
+                                value: v,
+                                strokeWidth: 8,
+                                strokeCap: StrokeCap.round,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              '$seconds',
+                              style: const TextStyle(
+                                fontSize: 84,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                                decoration: TextDecoration.none,
+                                shadows: shadow,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+                      const Text(
+                        'Keep holding to send SOS',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                          decoration: TextDecoration.none,
+                          shadows: shadow,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Admin, Security and Responders will be alerted',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.80),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.none,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Release to cancel',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.65),
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.none,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
