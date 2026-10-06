@@ -67,84 +67,82 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: GlassBackdrop(
-        child: SafeArea(
-          child: Stack(
-            children: [
-              Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    FadeTransition(
-                      opacity: _fade,
-                      child: ScaleTransition(
-                        scale: _scale,
-                        child: GlassCard(
-                          radius: 32,
-                          blur: 20,
-                          opacity: 0.55,
-                          glowColor: AppColors.brand,
-                          padding: const EdgeInsets.all(26),
-                          child: Image.asset(
-                            AssetConstants.nivaLogo,
-                            width: 110,
-                            fit: BoxFit.contain,
-                          ),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FadeTransition(
+                    opacity: _fade,
+                    child: ScaleTransition(
+                      scale: _scale,
+                      child: GlassCard(
+                        radius: 32,
+                        blur: 20,
+                        opacity: 0.55,
+                        glowColor: AppColors.brand,
+                        padding: const EdgeInsets.all(26),
+                        child: Image.asset(
+                          AssetConstants.nivaLogo,
+                          width: 110,
+                          fit: BoxFit.contain,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 28),
+                  ),
+                  const SizedBox(height: 28),
 
-                    // Plain text tagline, no container.
-                    FadeTransition(
-                      opacity: _textFade,
-                      child: SlideTransition(
-                        position: _textSlide,
-                        child: Text(
-                          'COMMUNITY APP',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            letterSpacing: 2.2,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.brandDark.withValues(alpha: 0.75),
-                          ),
+                  // Plain text tagline, no container.
+                  FadeTransition(
+                    opacity: _textFade,
+                    child: SlideTransition(
+                      position: _textSlide,
+                      child: Text(
+                        'COMMUNITY APP',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12,
+                          letterSpacing: 2.2,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.brandDark.withValues(alpha: 0.75),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 28),
+                  ),
+                  const SizedBox(height: 28),
 
-                    FadeTransition(
-                      opacity: _textFade,
-                      child: Center(
-                        child: SizedBox(
-                          width: 96,
-                          child: TweenAnimationBuilder<double>(
-                            tween: Tween(begin: 0, end: 1),
-                            duration: _totalDuration,
-                            curve: Curves.easeInOut,
-                            builder: (context, value, _) => ClipRRect(
-                              borderRadius: BorderRadius.circular(2),
-                              child: LinearProgressIndicator(
-                                value: value,
-                                minHeight: 3,
-                                backgroundColor: AppColors.brand.withValues(
-                                  alpha: 0.15,
-                                ),
-                                valueColor: const AlwaysStoppedAnimation<Color>(
-                                  AppColors.brand,
-                                ),
+                  FadeTransition(
+                    opacity: _textFade,
+                    child: Center(
+                      child: SizedBox(
+                        width: 96,
+                        child: TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0, end: 1),
+                          duration: _totalDuration,
+                          curve: Curves.easeInOut,
+                          builder: (context, value, _) => ClipRRect(
+                            borderRadius: BorderRadius.circular(2),
+                            child: LinearProgressIndicator(
+                              value: value,
+                              minHeight: 3,
+                              backgroundColor: AppColors.brand.withValues(
+                                alpha: 0.15,
+                              ),
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                AppColors.brand,
                               ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -141,8 +141,7 @@ class _NoInternetScreenState extends State<NoInternetScreen>
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      body: GlassBackdrop(
-        child: SafeArea(
+      body: SafeArea(
           child: Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -241,7 +240,7 @@ class _NoInternetScreenState extends State<NoInternetScreen>
             ),
           ),
         ),
-      ),
+      
     );
   }
 }

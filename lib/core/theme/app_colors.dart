@@ -18,7 +18,7 @@ class AppColors {
   static const Color rose = Color(0xFFC2456B);
   static const Color orange = Color(0xFFD1622B);
   static const Color slate = Color(0xFF5B6B78);
-  static const Color background = Color(0xFFEAF4F1);
+  static const Color background = Color(0xFFF6FAFD);
   static const Color inputText = Color(0xFF222222);
   static const Color kwhite = Colors.white;
   static const Color kblack = Colors.black;
@@ -38,4 +38,71 @@ class AppColors {
   static const Color sosDeepRed = Color(0xFFC20F0F);
   static const Color sosGradientStart = Color(0xF000B38F);
   static const Color sosGradientEnd = Color(0xF0287B6D);
+}
+
+class NewAppColors {
+  NewAppColors._();
+
+  // ============================================================
+  // BRAND
+  // ============================================================
+
+  static const Color brand = Color(0xFF0E2F76);
+  static const Color brandDark = Color(0xFF082257);
+  static const Color secondary = Color(0xFFAAC0E1);
+
+  // ============================================================
+  // BACKGROUND
+  // ============================================================
+
+  static const Color background = Color(0xFFF5FEFF);
+  static const Color kBackgroundColour = Color(0xFFF5FEFF);
+
+  // ============================================================
+  // BLUE PALETTE
+  // ============================================================
+
+  static const Color primary = Color(0xFF0E2F76);
+  static const Color primaryDark = Color(0xFF082257);
+
+  static const Color lightBlue = Color(0xFFAAC0E1);
+  static const Color softBlue = Color(0xFFD7E3F4);
+
+  // ============================================================
+  // SURFACES
+  // ============================================================
+
+  static const Color kwhite = Color(0xFFFFFFFF);
+  static const Color surface = Color(0xFFFFFFFF);
+  static const Color surfaceSoft = Color(0xFFF5FEFF);
+
+  // ============================================================
+  // TEXT
+  // ============================================================
+
+  static const Color textPrimary = Color(0xFF0E2F76);
+  static const Color textSecondary = Color(0xFF52698F);
+  static const Color textMuted = Color(0xFF8193AD);
+
+  // ============================================================
+  // GLASSMORPHISM
+  // ============================================================
+
+  static const Color glassShadow = Color(0xFF0E2F76);
+  static const Color glassTint = Color(0xFFAAC0E1);
+  static const Color glassBorder = Color(0xFFD7E3F4);
+
+  // ============================================================
+  // STATES
+  // ============================================================
+
+  static const Color disabled = Color(0xFFB9C5D8);
+  static const Color divider = Color(0xFFDCE5F1);
+
+  // ============================================================
+  // COMMON
+  // ============================================================
+
+  static const Color transparent = Colors.transparent;
+  static const Color black = Color(0xFF000000);
 }

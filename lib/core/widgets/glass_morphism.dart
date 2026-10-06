@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:community/core/constants/asset_constants.dart';
 import 'package:community/core/theme/app_colors.dart';
 import 'package:flutter/services.dart';
 
@@ -197,83 +196,6 @@ class GlassCard extends StatelessWidget {
               )
             : surface,
       ),
-    );
-  }
-}
-
-class GlassBackdrop extends StatelessWidget {
-  const GlassBackdrop({super.key, required this.child});
-  final Widget child;
-
-  Widget _blob(Color c, double size, double alpha) => IgnorePointer(
-    child: Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [
-            c.withValues(alpha: alpha),
-            c.withValues(alpha: 0),
-          ],
-        ),
-      ),
-    ),
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        const Positioned.fill(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.gradientStart,
-                  AppColors.gradientBlue,
-                  AppColors.gradientPurple,
-                  AppColors.gradientEnd,
-                ],
-                stops: [0.0, 0.4, 0.7, 1.0],
-              ),
-            ),
-          ),
-        ),
-        Positioned.fill(
-          child: Opacity(
-            opacity: 0.5,
-            child: Image.asset(
-              AssetConstants.background,
-              fit: BoxFit.cover,
-              alignment: Alignment.center,
-            ),
-          ),
-        ),
-        Positioned(
-          top: -90,
-          left: -70,
-          child: _blob(AppColors.brand, 300, 0.38),
-        ),
-        Positioned(
-          top: 200,
-          right: -100,
-          child: _blob(AppColors.violet, 260, 0.22),
-        ),
-        Positioned(
-          bottom: 40,
-          left: -90,
-          child: _blob(AppColors.cyan, 300, 0.28),
-        ),
-        Positioned(
-          bottom: -60,
-          right: -60,
-          child: _blob(const Color(0xFFF6B04A), 220, 0.18),
-        ),
-        Positioned.fill(child: child),
-      ],
     );
   }
 }

@@ -40,88 +40,82 @@ class _VerficationScreenState extends State<VerficationScreen> {
 
   @override
   Widget build(BuildContext context) {
-  
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         backgroundColor: AppColors.background,
         resizeToAvoidBottomInset: true,
-        body: GlassBackdrop(
-          child: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  physics: const ClampingScrollPhysics(),
-                  keyboardDismissBehavior:
-                      ScrollViewKeyboardDismissBehavior.onDrag,
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: IntrinsicHeight(
-                      child: Column(
-                        children: [
-                          const AppBackButton(),
-                          const Spacer(flex: 1),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            child: Column(
-                              children: [
-                                FadeSlideIn(
-                                  child: pinHeader(
-                                    context,
-                                    phoneNumber: widget.phoneNumber,
-                                  ),
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      children: [
+                        const AppBackButton(),
+                        const Spacer(flex: 1),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Column(
+                            children: [
+                              FadeSlideIn(
+                                child: pinHeader(
+                                  context,
+                                  phoneNumber: widget.phoneNumber,
                                 ),
-                                const SizedBox(height: 18),
-                                FadeSlideIn(
-                                  delay: const Duration(milliseconds: 100),
-                                  child: authStepper(step: 2),
-                                ),
-                                const SizedBox(height: 22),
-                                FadeSlideIn(
-                                  delay: const Duration(milliseconds: 200),
-                                  child: GlassCard(
-                                    padding: const EdgeInsets.all(20),
-                                    child: Column(
-                                      children: [
-                                        pinInput(
-                                          focusNode: _pinFocus,
-                                          obscure: _obscure,
-                                          onToggleObscure: () => setState(
-                                            () => _obscure = !_obscure,
-                                          ),
+                              ),
+                              const SizedBox(height: 18),
+                              FadeSlideIn(
+                                delay: const Duration(milliseconds: 100),
+                                child: authStepper(step: 2),
+                              ),
+                              const SizedBox(height: 22),
+                              FadeSlideIn(
+                                delay: const Duration(milliseconds: 200),
+                                child: GlassCard(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Column(
+                                    children: [
+                                      pinInput(
+                                        focusNode: _pinFocus,
+                                        obscure: _obscure,
+                                        onToggleObscure: () => setState(
+                                          () => _obscure = !_obscure,
                                         ),
-                                        const SizedBox(height: 20),
-                                        pinVerifyButton(),
-                                      ],
-                                    ),
+                                      ),
+                                      const SizedBox(height: 20),
+                                      pinVerifyButton(),
+                                    ],
                                   ),
                                 ),
-                                const SizedBox(height: 16),
-                                FadeSlideIn(
-                                  delay: const Duration(milliseconds: 320),
-                                  child: pinHelp(),
-                                ),
-                              ],
-                            ),
+                              ),
+                              const SizedBox(height: 16),
+                              FadeSlideIn(
+                                delay: const Duration(milliseconds: 320),
+                                child: pinHelp(),
+                              ),
+                            ],
                           ),
-                          const Spacer(flex: 2),
-                        ],
-                      ),
+                        ),
+                        const Spacer(flex: 2),
+                      ],
                     ),
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
           ),
         ),
       ),
     );
   }
 }
-
 
 String _formatPhone(String phoneNumber) => phoneNumber.length == 10
     ? '+91 ${phoneNumber.substring(0, 5)} ${phoneNumber.substring(5)}'
