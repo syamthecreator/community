@@ -3,106 +3,60 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  static const Color brand = Color(0xFF009879);
-  static const Color brandDark = Color(0xFF287B6D);
-  static const Color title = Color(0xFF12202B);
-  static const Color body = Color(0xFF39454B);
-  static const Color hint = Color(0xFF9A9A9A);
-  static const Color border = Color(0xFF858A86);
-  static const Color error = Color(0xFFD32F2F);
-  static const Color disabled = Color(0xFFB7D9D1);
-  static const Color info = Color(0xFF2F6FB5);
-  static const Color violet = Color(0xFF6B5BC0);
-  static const Color warning = Color(0xFFB7791F);
-  static const Color cyan = Color(0xFF1B8FA6);
-  static const Color rose = Color(0xFFC2456B);
-  static const Color orange = Color(0xFFD1622B);
-  static const Color slate = Color(0xFF5B6B78);
-  static const Color background = Color(0xFFF6FAFD);
-  static const Color inputText = Color(0xFF222222);
-  static const Color kwhite = Colors.white;
-  static const Color kblack = Colors.black;
-  static const Color mint = Color(0xFF3FD0AE);
-  static const Color sky = Color(0xFF55A8E8);
-  static const Color lilac = Color(0xFF9B8CF2);
-  static const Color sun = Color(0xFFF6B04A);
-  static const Color coral = Color(0xFFFF7A7A);
-  static const Color glassShadow = Color(0xFF1B5E52);
-  static const Color gradientStart = Color(0xFFD2F3E9);
-  static const Color gradientBlue = Color(0xFFE3EEFA);
-  static const Color gradientPurple = Color(0xFFEFEBFA);
-  static const Color gradientEnd = Color(0xFFF1F6F4);
-  static const Color tint = Color(0xFFF1FBF8);
-  static const Color sosRed = Color(0xFFFF5252);
-  static const Color sosDarkRed = Color(0xFFE41B1B);
-  static const Color sosDeepRed = Color(0xFFC20F0F);
-  static const Color sosGradientStart = Color(0xF000B38F);
-  static const Color sosGradientEnd = Color(0xF0287B6D);
-}
+  // ── Core palette ──
+  static const Color paletteLight = Color(0xFFF5FEFF);
+  static const Color paletteSoft = Color(0xFFAAC0E1);
+  static const Color paletteDeep = Color(0xFF0E2F76);
 
-class NewAppColors {
-  NewAppColors._();
+  // ── Surfaces ──
+  static const Color background = paletteLight;
+  static const Color kwhite = paletteLight;
+  static const Color kblack = Color(0xFF000000);
+  static const Color tint = Color(0xFFEAF1FB);
+  static const Color homeBackground = Color(0xFFEAF1FB);
 
-  // ============================================================
-  // BRAND
-  // ============================================================
+  // ── Brand ──
+  static const Color brand = Color(0xFF1D4290);
+  static const Color brandDark = paletteDeep;
+  static const Color brandLight = Color(0xFF3B66B8);
+  static const Color mint = brandLight;
 
-  static const Color brand = Color(0xFF0E2F76);
-  static const Color brandDark = Color(0xFF082257);
-  static const Color secondary = Color(0xFFAAC0E1);
+  // ── Text ──
+  static const Color title = paletteDeep;
+  static const Color inputText = paletteDeep;
+  static const Color body = Color(0xFF4A5F8C);
+  static const Color hint = Color(0xFF8196BD);
+  static const Color slate = Color(0xFF5B6B8C);
 
-  // ============================================================
-  // BACKGROUND
-  // ============================================================
+  // ── Lines / states ──
+  static const Color border = paletteSoft;
+  static const Color disabled = paletteSoft;
+  static const Color error = Color(0xFFD93B4A);
+  static const Color orange = Color(0xFFF59E0B);
 
-  static const Color background = Color(0xFFF5FEFF);
-  static const Color kBackgroundColour = Color(0xFFF5FEFF);
+  // ── Accents ──
+  static const Color info = Color(0xFF4F86D6);
+  static const Color sky = paletteSoft;
+  static const Color lilac = Color(0xFF7F9AD0);
+  static const Color cyan = Color(0xFF8FB0E8);
+  static const Color violet = Color(0xFF5B6FB5);
+  static const Color coral = Color(0xFFFF6B6B);
+  static const Color warning = Color(0xFFE8A317);
+  static const Color rose = Color(0xFFD9576B);
 
-  // ============================================================
-  // BLUE PALETTE
-  // ============================================================
+  // ── My message bubble gradient ──
+  static const Color sosGradientStart = brandLight;
+  static const Color sosGradientEnd = brandDark;
 
-  static const Color primary = Color(0xFF0E2F76);
-  static const Color primaryDark = Color(0xFF082257);
+  // ── SOS button ──
+  static const Color sosRed = Color(0xFFFF4D4F);
+  static const Color sosDarkRed = Color(0xFFD32030);
+  static const Color sosDeepRed = Color(0xFF8E0F1C);
 
-  static const Color lightBlue = Color(0xFFAAC0E1);
-  static const Color softBlue = Color(0xFFD7E3F4);
+  // ── Skeleton loader ──
+  static const Color skeletonBase = Color(0xFFD3DFF1);
+  static const Color skeletonHighlight = Color(0xFFF2F7FF);
 
-  // ============================================================
-  // SURFACES
-  // ============================================================
-
-  static const Color kwhite = Color(0xFFFFFFFF);
-  static const Color surface = Color(0xFFFFFFFF);
-  static const Color surfaceSoft = Color(0xFFF5FEFF);
-
-  // ============================================================
-  // TEXT
-  // ============================================================
-
-  static const Color textPrimary = Color(0xFF0E2F76);
-  static const Color textSecondary = Color(0xFF52698F);
-  static const Color textMuted = Color(0xFF8193AD);
-
-  // ============================================================
-  // GLASSMORPHISM
-  // ============================================================
-
-  static const Color glassShadow = Color(0xFF0E2F76);
-  static const Color glassTint = Color(0xFFAAC0E1);
-  static const Color glassBorder = Color(0xFFD7E3F4);
-
-  // ============================================================
-  // STATES
-  // ============================================================
-
-  static const Color disabled = Color(0xFFB9C5D8);
-  static const Color divider = Color(0xFFDCE5F1);
-
-  // ============================================================
-  // COMMON
-  // ============================================================
-
-  static const Color transparent = Colors.transparent;
-  static const Color black = Color(0xFF000000);
+  // ── Effects ──
+  static const Color glassShadow = paletteDeep;
 }

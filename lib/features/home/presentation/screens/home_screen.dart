@@ -2,8 +2,8 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:community/app/app_router.dart';
-import 'package:community/core/constants/asset_constants.dart';
 import 'package:community/core/theme/app_colors.dart';
+import 'package:community/core/widgets/app_back_button.dart';
 import 'package:community/core/widgets/app_skeleton.dart';
 import 'package:community/core/widgets/glass_morphism.dart';
 import 'package:community/features/notifications/presentation/screens/notifications_screen.dart';
@@ -24,7 +24,7 @@ class HomeScreen extends StatelessWidget {
 
 const int _maxChars = 50;
 const String _myId = '201';
-const String _communityName = 'Green Valley Community';
+const String _communityName = 'Favorite Homes';
 const int _memberCount = 30;
 final List<String> _memberRooms = List.generate(
   _memberCount,
@@ -181,28 +181,6 @@ Widget _glass({
   );
 }
 
-Widget _blob({
-  required Color color,
-  required double size,
-  double alpha = 0.35,
-}) {
-  return IgnorePointer(
-    child: Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [
-            color.withValues(alpha: alpha),
-            color.withValues(alpha: 0),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
 class _HomeScreenView extends StatefulWidget {
   const _HomeScreenView();
 
@@ -288,7 +266,6 @@ class _HomeScreenViewState extends State<_HomeScreenView>
       type: _Type.member,
       userId: '214',
       time: '9:30 AM',
-      // text: 'ലിഫ്റ്റ് ഇന്ന് ശരിയാകുമോ?',
       text: 'أين أنت؟',
     ),
     const _Item(
@@ -317,56 +294,13 @@ class _HomeScreenViewState extends State<_HomeScreenView>
       time: '10:20 AM',
       text: 'Thanks for the update!',
     ),
-const _Item(
-    day: 'Today',
-    type: _Type.member,
-    userId: '214',
-    time: '9:30 AM',
-    text: 'ഇന്ന് വൈകുന്നേരം എല്ലാവരും മീറ്റിംഗിന് വരണം.',
-  ),
-  const _Item(
-    day: 'Today',
-    type: _Type.member,
-    userId: '118',
-    time: '9:35 AM',
-    text: 'आप लोग आज शाम मीटिंग के लिए आना।',
-  ),
-  const _Item(
-    day: 'Today',
-    type: _Type.member,
-    userId: '305',
-    time: '9:40 AM',
-    text: 'இன்று மாலை எல்லோரும் கூட்டத்திற்கு வரவும்.',
-  ),
-  const _Item(
-    day: 'Today',
-    type: _Type.member,
-    userId: '407',
-    time: '9:45 AM',
-    text: 'ಇಂದು ಸಂಜೆ ಎಲ್ಲರೂ ಮೀಟಿಂಗ್‌ಗೆ ಬನ್ನಿ.',
-  ),
-  const _Item(
-    day: 'Today',
-    type: _Type.member,
-    userId: '512',
-    time: '9:50 AM',
-    text: 'اليوم مساءً سيأتي الجميع إلى الاجتماع.',
-  ),
-  const _Item(
-    day: 'Today',
-    type: _Type.member,
-    userId: '623',
-    time: '9:55 AM',
-    text: 'ఈరోజు సాయంత్రం అందరూ సమావేశానికి రావాలి.',
-  ),
-  const _Item(
-    day: 'Today',
-    type: _Type.member,
-    userId: '731',
-    time: '10:00 AM',
-    text: 'The water supply will be available from 6 PM.',
-  ),
-
+    const _Item(
+      day: 'Today',
+      type: _Type.member,
+      userId: '214',
+      time: '9:30 AM',
+      text: 'ഇന്ന് വൈകുന്നേരം എല്ലാവരും മീറ്റിംഗിന് വരണം.',
+    ),
   ];
 
   _Item? get _pinned {
@@ -427,7 +361,6 @@ const _Item(
   void _onTranslateTap(_Item item) {
     final key = item.text;
     if (_translations.containsKey(key)) {
-      // Already translated once: just toggle, no network call.
       setState(() {
         if (!_showTranslated.remove(key)) _showTranslated.add(key);
       });
@@ -523,7 +456,7 @@ const _Item(
         _translating.remove(item.text);
         if (!alreadyEnglish) {
           _translations[item.text] = result.text;
-          _showTranslated.add(item.text); // show English immediately
+          _showTranslated.add(item.text);
         }
       });
 
@@ -1049,89 +982,88 @@ const _Item(
         behavior: HitTestBehavior.translucent,
         onTap: _dismissKeyboard,
         child: Scaffold(
-          backgroundColor: const Color(0xFFEAF4F1),
+          backgroundColor: AppColors.homeBackground,
           resizeToAvoidBottomInset: true,
           body: Stack(
             children: [
               Positioned.fill(
-                child: _homeBackdrop(
-                  child: Column(
-                    children: [
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 180),
-                        child: _selecting
-                            ? KeyedSubtree(
-                                key: const ValueKey('sel'),
+                child: Column(
+                  children: [
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 180),
+                      child: _selecting
+                          ? KeyedSubtree(
+                              key: const ValueKey('sel'),
 
-                                child: _selectionBar(
-                                  context,
-                                  count: _selected.length,
-                                  onBack: _clearSelection,
-                                  onCopy: _copySelected,
-                                  onDelete: _deleteSelected,
-                                  onEdit: _canEdit ? _startEdit : null,
-                                ),
-                              )
-                            : KeyedSubtree(
-                                key: const ValueKey('hdr'),
-                                child: _header(
-                                  context,
-                                  onMembers: () {
-                                    _dismissKeyboard();
-                                    Navigator.of(context)
-                                        .push(
-                                          MaterialPageRoute(
-                                            builder: (_) =>
-                                                const _MembersScreen(),
-                                          ),
-                                        )
-                                        .then((_) => _dismissKeyboard());
-                                  },
-
-                                  onNotifications: () {
-                                    _dismissKeyboard();
-
-                                    Navigator.pushNamed(
-                                      context,
-                                      AppRouter.notifications,
-                                    );
-                                  },
-                                  onProfile: () {
-                                    _dismissKeyboard();
-                                    Navigator.pushNamed(
-                                      context,
-                                      AppRouter.profile,
-                                    ).then((_) => _dismissKeyboard());
-                                  },
-                                ),
+                              child: _selectionBar(
+                                context,
+                                count: _selected.length,
+                                onBack: _clearSelection,
+                                onCopy: _copySelected,
+                                onDelete: _deleteSelected,
+                                onEdit: _canEdit ? _startEdit : null,
                               ),
-                      ),
-                      Expanded(
-                        child: IndexedStack(
-                          index: _tab,
-                          sizing: StackFit.expand,
-                          children: [
-                            _buildChatTab(),
-                            ReportIssueView(
-                              key: _reportKey,
-                              onSubmitted: _onReportSubmitted,
-                              onExit: () => _selectTab(0),
+                            )
+                          : KeyedSubtree(
+                              key: const ValueKey('hdr'),
+                              child: _header(
+                                context,
+                                onMembers: () {
+                                  _dismissKeyboard();
+                                  Navigator.of(context)
+                                      .push(
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const _MembersScreen(),
+                                        ),
+                                      )
+                                      .then((_) => _dismissKeyboard());
+                                },
+
+                                onNotifications: () {
+                                  _dismissKeyboard();
+
+                                  Navigator.pushNamed(
+                                    context,
+                                    AppRouter.notifications,
+                                  );
+                                },
+                                onProfile: () {
+                                  _dismissKeyboard();
+                                  Navigator.pushNamed(
+                                    context,
+                                    AppRouter.profile,
+                                  ).then((_) => _dismissKeyboard());
+                                },
+                              ),
                             ),
-                          ],
-                        ),
+                    ),
+                    Expanded(
+                      child: IndexedStack(
+                        index: _tab,
+                        sizing: StackFit.expand,
+                        children: [
+                          _buildChatTab(),
+                          ReportIssueView(
+                            key: _reportKey,
+                            onSubmitted: _onReportSubmitted,
+                            onExit: () => _selectTab(0),
+                          ),
+                        ],
                       ),
-                      if (!keyboardOpen)
-                        _bottomNav(
-                          context,
-                          hold: _hold,
-                          tab: _tab,
-                          onHome: () => _selectTab(0),
-                          onReport: () => _selectTab(1),
-                        ),
-                    ],
-                  ),
+                    ),
+                    if (!keyboardOpen)
+                      _bottomNav(
+                        context,
+                        hold: _hold,
+                        tab: _tab,
+                        onHome: () => _selectTab(0),
+                        onReport: () => _selectTab(1),
+                      ),
+                  ],
                 ),
               ),
+
               _sosHoldOverlay(hold: _hold),
             ],
           ),
@@ -1220,9 +1152,7 @@ Widget _translationButton({
             )
           else
             Icon(
-              showingTranslated
-                  ? Icons.undo_rounded
-                  : Icons.translate_rounded,
+              showingTranslated ? Icons.undo_rounded : Icons.translate_rounded,
               size: 15,
               color: color,
             ),
@@ -1231,8 +1161,8 @@ Widget _translationButton({
             translating
                 ? 'Translating...'
                 : showingTranslated
-                    ? 'Show original'
-                    : 'Translate',
+                ? 'Show original'
+                : 'Translate',
             style: TextStyle(
               fontSize: 11.5,
               fontWeight: FontWeight.w600,
@@ -1242,66 +1172,6 @@ Widget _translationButton({
         ],
       ),
     ),
-  );
-}
-
-Widget _homeBackdrop({required Widget child}) {
-  return Stack(
-    children: [
-      const Positioned.fill(
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppColors.gradientStart,
-                AppColors.gradientBlue,
-                AppColors.gradientPurple,
-                AppColors.gradientEnd,
-              ],
-              stops: [0.0, 0.4, 0.7, 1.0],
-            ),
-          ),
-        ),
-      ),
-      Positioned.fill(
-        child: Opacity(
-          opacity: 0.55,
-          child: Image.asset(
-            AssetConstants.background,
-            fit: BoxFit.cover,
-            alignment: Alignment.center,
-          ),
-        ),
-      ),
-      Positioned(
-        top: -90,
-        left: -70,
-        child: _blob(color: AppColors.brand, size: 300, alpha: 0.38),
-      ),
-      Positioned(
-        top: 120,
-        right: -80,
-        child: _blob(color: AppColors.sun, size: 220, alpha: 0.20),
-      ),
-      Positioned(
-        top: 300,
-        right: -110,
-        child: _blob(color: AppColors.violet, size: 280, alpha: 0.24),
-      ),
-      Positioned(
-        bottom: 90,
-        left: -90,
-        child: _blob(color: AppColors.cyan, size: 320, alpha: 0.30),
-      ),
-      Positioned(
-        bottom: -60,
-        right: -60,
-        child: _blob(color: AppColors.coral, size: 220, alpha: 0.16),
-      ),
-      Positioned.fill(child: child),
-    ],
   );
 }
 
@@ -1342,159 +1212,157 @@ class _ImagePreviewScreenState extends State<_ImagePreviewScreen> {
       behavior: HitTestBehavior.translucent,
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
-        backgroundColor: const Color(0xFFEAF4F1),
+        backgroundColor: AppColors.homeBackground,
         resizeToAvoidBottomInset: true,
-        body: _homeBackdrop(
-          child: SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                  child: Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: _glass(
-                          radius: BorderRadius.circular(22),
-                          blur: 14,
-                          opacity: 0.60,
-                          shadow: false,
-                          child: const SizedBox(
-                            width: 44,
-                            height: 44,
-                            child: Icon(
-                              Icons.close_rounded,
-                              size: 20,
-                              color: AppColors.title,
-                            ),
+        body: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: _glass(
+                        radius: BorderRadius.circular(22),
+                        blur: 14,
+                        opacity: 0.60,
+                        shadow: false,
+                        child: const SizedBox(
+                          width: 44,
+                          height: 44,
+                          child: Icon(
+                            Icons.close_rounded,
+                            size: 20,
+                            color: AppColors.title,
                           ),
                         ),
                       ),
-                      const Spacer(),
-                      GestureDetector(
-                        onTap: () => Navigator.pop(
-                          context,
-                          const _PreviewResult(retake: true),
+                    ),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(
+                        context,
+                        const _PreviewResult(retake: true),
+                      ),
+                      child: _glass(
+                        radius: BorderRadius.circular(22),
+                        blur: 14,
+                        opacity: 0.60,
+                        shadow: false,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
                         ),
-                        child: _glass(
-                          radius: BorderRadius.circular(22),
-                          blur: 14,
-                          opacity: 0.60,
-                          shadow: false,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 12,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                camera
-                                    ? Icons.refresh_rounded
-                                    : Icons.photo_library_outlined,
-                                size: 18,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              camera
+                                  ? Icons.refresh_rounded
+                                  : Icons.photo_library_outlined,
+                              size: 18,
+                              color: AppColors.brand,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              camera ? 'Retake' : 'Choose another',
+                              style: const TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w700,
                                 color: AppColors.brand,
                               ),
-                              const SizedBox(width: 6),
-                              Text(
-                                camera ? 'Retake' : 'Choose another',
-                                style: const TextStyle(
-                                  fontSize: 13.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.brand,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-                    child: _glass(
-                      radius: BorderRadius.circular(26),
-                      blur: 0,
-                      opacity: 0.50,
-                      padding: const EdgeInsets.all(6),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: InteractiveViewer(
-                          minScale: 1,
-                          maxScale: 4,
-                          child: Center(
-                            child: Image.file(
-                              File(widget.path),
-                              fit: BoxFit.contain,
-                            ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+                  child: _glass(
+                    radius: BorderRadius.circular(26),
+                    blur: 0,
+                    opacity: 0.50,
+                    padding: const EdgeInsets.all(6),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: InteractiveViewer(
+                        minScale: 1,
+                        maxScale: 4,
+                        child: Center(
+                          child: Image.file(
+                            File(widget.path),
+                            fit: BoxFit.contain,
                           ),
                         ),
                       ),
                     ),
                   ),
                 ),
-                ListenableBuilder(
-                  listenable: _caption,
-                  builder: (context, _) {
-                    final count = _caption.text.length;
-                    final low = _maxChars - count <= 10;
-                    return _glass(
-                      margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                      padding: const EdgeInsets.fromLTRB(18, 3, 5, 3),
-                      radius: BorderRadius.circular(30),
-                      blur: 20,
-                      opacity: 0.62,
-                      shadowColor: count > 0 ? AppColors.brand : null,
-                      borderColor: count > 0
-                          ? AppColors.brand.withValues(alpha: 0.65)
-                          : Colors.white.withValues(alpha: 0.85),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _caption,
-                              maxLength: _maxChars,
-                              maxLines: 1,
-                              textInputAction: TextInputAction.send,
-                              onSubmitted: (_) => _send(),
-                              cursorColor: AppColors.brand,
-                              style: const TextStyle(
-                                fontSize: 14.5,
-                                color: AppColors.title,
+              ),
+              ListenableBuilder(
+                listenable: _caption,
+                builder: (context, _) {
+                  final count = _caption.text.length;
+                  final low = _maxChars - count <= 10;
+                  return _glass(
+                    margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                    padding: const EdgeInsets.fromLTRB(18, 3, 5, 3),
+                    radius: BorderRadius.circular(30),
+                    blur: 20,
+                    opacity: 0.62,
+                    shadowColor: count > 0 ? AppColors.brand : null,
+                    borderColor: count > 0
+                        ? AppColors.brand.withValues(alpha: 0.65)
+                        : Colors.white.withValues(alpha: 0.85),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _caption,
+                            maxLength: _maxChars,
+                            maxLines: 1,
+                            textInputAction: TextInputAction.send,
+                            onSubmitted: (_) => _send(),
+                            cursorColor: AppColors.brand,
+                            style: const TextStyle(
+                              fontSize: 14.5,
+                              color: AppColors.title,
+                            ),
+                            decoration: const InputDecoration(
+                              hintText: 'Add a message…',
+                              hintStyle: TextStyle(
+                                color: AppColors.hint,
+                                fontSize: 14,
                               ),
-                              decoration: const InputDecoration(
-                                hintText: 'Add a message…',
-                                hintStyle: TextStyle(
-                                  color: AppColors.hint,
-                                  fontSize: 14,
-                                ),
-                                border: InputBorder.none,
-                                counterText: '',
+                              border: InputBorder.none,
+                              counterText: '',
+                            ),
+                          ),
+                        ),
+                        if (count > 0)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: Text(
+                              '$count/$_maxChars',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: low ? AppColors.error : AppColors.hint,
                               ),
                             ),
                           ),
-                          if (count > 0)
-                            Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: Text(
-                                '$count/$_maxChars',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: low ? AppColors.error : AppColors.hint,
-                                ),
-                              ),
-                            ),
-                          _sendOrb(onTap: _send),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
+                        _sendOrb(onTap: _send),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
         ),
       ),
@@ -1547,7 +1415,6 @@ Widget _header(
     padding: EdgeInsets.fromLTRB(16, top + 10, 16, 12),
     child: Row(
       children: [
-        const SizedBox(width: 12),
         Expanded(
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
@@ -2754,18 +2621,18 @@ Widget _bubble({
           ),
         if (item.hasImage) _imageBlock(path: item.photoPath),
         if (item.text.isNotEmpty) ...[
-  Text(
-    shown,
-    style: TextStyle(fontSize: 14.5, height: 1.38, color: fg),
-  ),
-  if (canTranslate || translated != null || translating)
-    _translationButton(
-      showingTranslated: showTranslated && translated != null,
-      translating: translating,
-      mine: mine,
-      onTap: onTranslate,
-    ),
-],
+          Text(
+            shown,
+            style: TextStyle(fontSize: 14.5, height: 1.38, color: fg),
+          ),
+          if (canTranslate || translated != null || translating)
+            _translationButton(
+              showingTranslated: showTranslated && translated != null,
+              translating: translating,
+              mine: mine,
+              onTap: onTranslate,
+            ),
+        ],
         const SizedBox(height: 3),
         Align(
           alignment: Alignment.centerRight,
@@ -3522,16 +3389,13 @@ Widget _sosHoldOverlay({required AnimationController hold}) {
           final fade = Curves.easeOut.transform((v * 4).clamp(0.0, 1.0));
           final seconds = (3 - v * 3).ceil().clamp(1, 3);
 
-          const shadow = [
-            Shadow(color: Color(0x66000000), blurRadius: 12),
-          ];
+          const shadow = [Shadow(color: Color(0x66000000), blurRadius: 12)];
 
           return Opacity(
             opacity: fade,
             child: Stack(
               fit: StackFit.expand,
               children: [
-                // Dark scrim: dims the whole home screen.
                 ColoredBox(
                   color: const Color(0xFF14060A).withValues(alpha: 0.82),
                 ),
@@ -3664,6 +3528,11 @@ Widget _sosHoldOverlay({required AnimationController hold}) {
   );
 }
 
+
+
+// Replace the whole _MembersScreen + _MembersScreenState in home_screen.dart.
+// Needs: import 'package:community/core/widgets/app_back_button.dart';
+
 class _MembersScreen extends StatefulWidget {
   const _MembersScreen();
 
@@ -3673,6 +3542,7 @@ class _MembersScreen extends StatefulWidget {
 
 class _MembersScreenState extends State<_MembersScreen> {
   final _search = TextEditingController();
+  final _focus = FocusNode();
   bool _loading = true;
 
   @override
@@ -3686,41 +3556,16 @@ class _MembersScreenState extends State<_MembersScreen> {
   @override
   void dispose() {
     _search.dispose();
+    _focus.dispose();
     super.dispose();
   }
 
-  Widget _circle(Widget inner, Color color, {double size = 44}) {
-    return Container(
-      width: size,
-      height: size,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            color.withValues(alpha: 0.34),
-            color.withValues(alpha: 0.12),
-          ],
-        ),
-        border: Border.all(color: AppColors.kwhite, width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.25),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: inner,
-    );
-  }
+  // ───────────────────────── helpers ─────────────────────────
 
   Widget _entrance(int index, Widget child) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
-      duration: Duration(milliseconds: 280 + (index.clamp(0, 8)) * 45),
+      duration: Duration(milliseconds: 280 + (index.clamp(0, 8)) * 50),
       curve: Curves.easeOutCubic,
       builder: (_, v, c) => Opacity(
         opacity: v,
@@ -3730,298 +3575,137 @@ class _MembersScreenState extends State<_MembersScreen> {
     );
   }
 
-  Widget _tile({
-    required int index,
-    required Widget avatar,
-    required String title,
-    String? subtitle,
-    String? tag,
-    Color tagColor = AppColors.brand,
-    bool highlight = false,
+  Widget _chip(
+    String text, {
+    required Color fg,
+    required Color bg,
+    Color? border,
   }) {
-    return _entrance(
-      index,
-      _glass(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.fromLTRB(12, 10, 14, 10),
-        radius: BorderRadius.circular(20),
-        blur: 0,
-        opacity: highlight ? 0.80 : 0.62,
-        shadow: highlight,
-        shadowColor: highlight ? AppColors.brand : null,
-        borderColor: highlight
-            ? AppColors.brand.withValues(alpha: 0.55)
-            : tagColor == AppColors.info
-            ? AppColors.info.withValues(alpha: 0.40)
-            : null,
-        child: Row(
-          children: [
-            avatar,
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.title,
-                    ),
-                  ),
-                  if (subtitle != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.hint,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            if (tag != null)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: tagColor.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: tagColor.withValues(alpha: 0.28)),
-                ),
-                child: Text(
-                  tag,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    color: tagColor,
-                  ),
-                ),
-              ),
-          ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
+        border: border == null ? null : Border.all(color: border),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.2,
+          color: fg,
         ),
       ),
     );
   }
 
-  Widget _section(
-    String label, {
-    int? count,
-    IconData icon = Icons.layers_rounded,
-    Color color = AppColors.slate,
-  }) {
+  Widget _highlighted(String text, String q, TextStyle base) {
+    final i = q.isEmpty ? -1 : text.indexOf(q);
+    if (i < 0) return Text(text, style: base);
+    return Text.rich(
+      TextSpan(
+        style: base,
+        children: [
+          TextSpan(text: text.substring(0, i)),
+          TextSpan(
+            text: text.substring(i, i + q.length),
+            style: TextStyle(
+              color: AppColors.brand,
+              backgroundColor: AppColors.brand.withValues(alpha: 0.12),
+            ),
+          ),
+          TextSpan(text: text.substring(i + q.length)),
+        ],
+      ),
+    );
+  }
+
+  Widget _sectionLabel(String text, {String? trailing}) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 12, 4, 10),
+      padding: const EdgeInsets.fromLTRB(4, 0, 4, 10),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(5),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(9),
-            ),
-            child: Icon(icon, size: 14, color: color),
-          ),
-          const SizedBox(width: 8),
           Text(
-            label,
-            style: TextStyle(
-              fontSize: 12.5,
+            text,
+            style: const TextStyle(
+              fontSize: 12,
               fontWeight: FontWeight.w800,
-              letterSpacing: 0.4,
-              color: color,
+              letterSpacing: 1.1,
+              color: AppColors.slate,
             ),
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Container(
-              height: 1,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    color.withValues(alpha: 0.30),
-                    color.withValues(alpha: 0),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          if (count != null) ...[
-            const SizedBox(width: 10),
+          const Spacer(),
+          if (trailing != null)
             Text(
-              '$count',
+              trailing,
               style: const TextStyle(
                 fontSize: 12,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 color: AppColors.hint,
               ),
             ),
-          ],
         ],
       ),
     );
   }
 
-  Widget _statPill(IconData icon, String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(8, 4, 11, 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.25)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 13, color: color),
-          const SizedBox(width: 5),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w800,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // ───────────────────────── header ─────────────────────────
 
-  Widget _heroCard() {
+  Widget _fixedTop() {
     final floors = (_memberCount / 6).ceil();
-    return _entrance(
-      0,
-      _glass(
-        margin: const EdgeInsets.only(bottom: 6),
-        padding: const EdgeInsets.all(16),
-        radius: BorderRadius.circular(26),
-        blur: 0,
-        opacity: 0.70,
-        shadowColor: AppColors.brand,
-        borderColor: AppColors.brand.withValues(alpha: 0.30),
-        child: Row(
-          children: [
-            Container(
-              width: 62,
-              height: 62,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [
-                    AppColors.mint,
-                    AppColors.brand,
-                    AppColors.brandDark,
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: AppColors.kwhite.withValues(alpha: 0.7),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.brand.withValues(alpha: 0.40),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.groups_rounded,
-                color: AppColors.kwhite,
-                size: 32,
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    _communityName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.title,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: [
-                      _statPill(
-                        Icons.people_alt_rounded,
-                        '$_memberCount members',
-                        AppColors.brandDark,
-                      ),
-                      _statPill(
-                        Icons.apartment_rounded,
-                        '$floors floors',
-                        AppColors.info,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+    final top = MediaQuery.of(context).padding.top;
 
-  Widget _header(double top) {
     return _glass(
-      radius: BorderRadius.zero,
+      radius: const BorderRadius.vertical(bottom: Radius.circular(28)),
       blur: 28,
-      opacity: 0.66,
+      opacity: 0.70,
       tint: AppColors.tint,
       borderOpacity: 0.95,
-      padding: EdgeInsets.fromLTRB(8, top + 10, 16, 12),
-      child: Row(
+      padding: EdgeInsets.only(top: top),
+      child: Column(
         children: [
-          IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back_rounded, color: AppColors.title),
-          ),
-          const SizedBox(width: 4),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Members',
-                  style: TextStyle(
-                    fontSize: 19,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.title,
+          Row(
+            children: [
+              const SizedBox(width: 76, child: AppBackButton()),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8, right: 16),
+                  child: SizedBox(
+                    height: 44,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          _communityName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.2,
+                            height: 1.15,
+                            color: AppColors.title,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          '$_memberCount members  ·  $floors floors',
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.body,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                SizedBox(height: 2),
-                Text(
-                  '$_communityName · $_memberCount',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.body,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
+          _searchBar(),
         ],
       ),
     );
@@ -4029,53 +3713,85 @@ class _MembersScreenState extends State<_MembersScreen> {
 
   Widget _searchBar() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       child: ListenableBuilder(
-        listenable: _search,
+        listenable: Listenable.merge([_search, _focus]),
         builder: (context, _) {
           final has = _search.text.isNotEmpty;
-          return _glass(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            radius: BorderRadius.circular(30),
-            blur: 20,
-            opacity: 0.62,
-            shadow: has,
-            shadowColor: has ? AppColors.brand : null,
-            borderColor: has
-                ? AppColors.brand.withValues(alpha: 0.65)
-                : Colors.white.withValues(alpha: 0.85),
+          final active = has || _focus.hasFocus;
+
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            height: 50,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: AppColors.kwhite.withValues(alpha: 0.92),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: active
+                    ? AppColors.brand
+                    : AppColors.border.withValues(alpha: 0.55),
+                width: active ? 1.5 : 1,
+              ),
+              boxShadow: active
+                  ? [
+                      BoxShadow(
+                        color: AppColors.brand.withValues(alpha: 0.14),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                  : null,
+            ),
             child: Row(
               children: [
                 Icon(
                   Icons.search_rounded,
-                  color: has ? AppColors.brand : AppColors.hint,
                   size: 22,
+                  color: active ? AppColors.brand : AppColors.hint,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
                 Expanded(
                   child: TextField(
                     controller: _search,
+                    focusNode: _focus,
                     keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     cursorColor: AppColors.brand,
                     style: const TextStyle(
-                      fontSize: 14.5,
-                      color: AppColors.title,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.inputText,
                     ),
                     decoration: const InputDecoration(
                       hintText: 'Search room number',
-                      hintStyle: TextStyle(color: AppColors.hint, fontSize: 14),
+                      hintStyle: TextStyle(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.hint,
+                      ),
                       border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
                     ),
                   ),
                 ),
                 if (has)
-                  IconButton(
-                    onPressed: _search.clear,
-                    visualDensity: VisualDensity.compact,
-                    icon: const Icon(
-                      Icons.close_rounded,
-                      size: 18,
-                      color: AppColors.slate,
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _search.clear,
+                    child: Container(
+                      width: 22,
+                      height: 22,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.hint.withValues(alpha: 0.25),
+                      ),
+                      child: const Icon(
+                        Icons.close_rounded,
+                        size: 14,
+                        color: AppColors.slate,
+                      ),
                     ),
                   ),
               ],
@@ -4086,35 +3802,304 @@ class _MembersScreenState extends State<_MembersScreen> {
     );
   }
 
-  Widget _empty() {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _circle(
-            const Icon(
-              Icons.search_off_rounded,
-              size: 30,
-              color: AppColors.slate,
-            ),
-            AppColors.slate,
-            size: 72,
-          ),
-          const SizedBox(height: 14),
-          const Text(
-            'No room found',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w800,
-              color: AppColors.title,
-            ),
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            'Try a different room number',
-            style: TextStyle(fontSize: 12.5, color: AppColors.body),
+  // ───────────────────────── cards ─────────────────────────
+
+  Widget _adminCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.brandLight, AppColors.brand, AppColors.brandDark],
+        ),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.brand.withValues(alpha: 0.30),
+            blurRadius: 22,
+            offset: const Offset(0, 10),
           ),
         ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withValues(alpha: 0.16),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
+            ),
+            child: const Icon(
+              Icons.campaign_rounded,
+              size: 24,
+              color: AppColors.kwhite,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        'Community Admin',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.kwhite,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 6),
+                    Icon(
+                      Icons.verified_rounded,
+                      size: 16,
+                      color: AppColors.kwhite,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  'Manages the community',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white.withValues(alpha: 0.78),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _chip(
+            'Admin',
+            fg: AppColors.kwhite,
+            bg: Colors.white.withValues(alpha: 0.18),
+            border: Colors.white.withValues(alpha: 0.30),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _myCard(String q) {
+    return _glass(
+      radius: BorderRadius.circular(22),
+      blur: 0,
+      opacity: 0.85,
+      borderColor: AppColors.brand.withValues(alpha: 0.55),
+      shadowColor: AppColors.brand,
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [AppColors.brandLight, AppColors.brandDark],
+              ),
+              border: Border.all(color: AppColors.kwhite, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.brand.withValues(alpha: 0.30),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.person_rounded,
+              size: 24,
+              color: AppColors.kwhite,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _highlighted(
+                  'Room $_myId',
+                  q,
+                  const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.title,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  'Floor ${_myId[0]}',
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.body,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _chip(
+            'You',
+            fg: AppColors.kwhite,
+            bg: AppColors.brand,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _roomRow(String room, String q) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppColors.paletteSoft.withValues(alpha: 0.50),
+                  AppColors.paletteSoft.withValues(alpha: 0.18),
+                ],
+              ),
+              border: Border.all(color: AppColors.kwhite, width: 1.5),
+            ),
+            child: Text(
+              room,
+              style: const TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w800,
+                color: AppColors.brandDark,
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _highlighted(
+                  'Room $room',
+                  q,
+                  const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.title,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                const Text(
+                  'Resident',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.hint,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _floorCard(List<String> rooms, String q) {
+    return _glass(
+      radius: BorderRadius.circular(22),
+      blur: 0,
+      opacity: 0.72,
+      child: Column(
+        children: [
+          for (var i = 0; i < rooms.length; i++) ...[
+            if (i > 0)
+              Divider(
+                height: 1,
+                indent: 72,
+                endIndent: 16,
+                color: AppColors.border.withValues(alpha: 0.35),
+              ),
+            _roomRow(rooms[i], q),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ───────────────────────── states ─────────────────────────
+
+  Widget _empty() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 60),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 84,
+              height: 84,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.brand.withValues(alpha: 0.08),
+                border: Border.all(
+                  color: AppColors.brand.withValues(alpha: 0.18),
+                ),
+              ),
+              child: const Icon(
+                Icons.search_off_rounded,
+                size: 36,
+                color: AppColors.brand,
+              ),
+            ),
+            const SizedBox(height: 18),
+            const Text(
+              'No room found',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+                color: AppColors.title,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Check the number and try again',
+              style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w500,
+                color: AppColors.body,
+              ),
+            ),
+            const SizedBox(height: 14),
+            TextButton(
+              onPressed: _search.clear,
+              child: const Text(
+                'Clear search',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.brand,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -4140,79 +4125,32 @@ class _MembersScreenState extends State<_MembersScreen> {
           byFloor.putIfAbsent(r[0], () => []).add(r);
         }
 
-        int i = 1;
+        final found = rooms.length + (showMyRoom ? 1 : 0);
+        int i = 0;
+
         return ListView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: const EdgeInsets.fromLTRB(16, 6, 16, 28),
+          padding: const EdgeInsets.fromLTRB(16, 22, 16, 36),
           children: [
-            if (!searching) _heroCard(),
+            if (searching) _sectionLabel('RESULTS', trailing: '$found found'),
             if (showAdmin) ...[
-              _section(
-                'ADMIN',
-                icon: Icons.verified_rounded,
-                color: AppColors.info,
-              ),
-              _tile(
-                index: i++,
-                avatar: _circle(
-                  const Icon(
-                    Icons.campaign_rounded,
-                    size: 22,
-                    color: AppColors.info,
-                  ),
-                  AppColors.info,
-                ),
-                title: 'Community Admin',
-                subtitle: 'Manages the community',
-                tag: 'Admin',
-                tagColor: AppColors.info,
-              ),
+              _sectionLabel('ADMIN'),
+              _entrance(i++, _adminCard()),
+              const SizedBox(height: 24),
             ],
             if (showMyRoom) ...[
-              _section(
-                'YOU',
-                icon: Icons.person_rounded,
-                color: AppColors.brand,
-              ),
-              _tile(
-                index: i++,
-                highlight: true,
-                avatar: _circle(
-                  const Icon(
-                    Icons.person_rounded,
-                    size: 22,
-                    color: AppColors.brand,
-                  ),
-                  AppColors.brand,
-                ),
-                title: 'Room $_myId',
-                subtitle: 'Floor ${_myId[0]}',
-                tag: 'You',
-              ),
+              _sectionLabel('YOU'),
+              _entrance(i++, _myCard(q)),
+              const SizedBox(height: 24),
             ],
             for (final e in byFloor.entries) ...[
-              _section(
+              _sectionLabel(
                 'FLOOR ${e.key}',
-                count: e.value.length,
-                icon: Icons.apartment_rounded,
+                trailing:
+                    '${e.value.length} ${e.value.length == 1 ? 'room' : 'rooms'}',
               ),
-              for (final r in e.value)
-                _tile(
-                  index: i++,
-                  avatar: _circle(
-                    Text(
-                      r,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.slate,
-                      ),
-                    ),
-                    AppColors.slate,
-                  ),
-                  title: 'Room $r',
-                  subtitle: 'Resident',
-                ),
+              _entrance(i++, _floorCard(e.value, q)),
+              const SizedBox(height: 24),
             ],
           ],
         );
@@ -4222,27 +4160,22 @@ class _MembersScreenState extends State<_MembersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final top = MediaQuery.of(context).padding.top;
-
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
-        backgroundColor: AppColors.background,
-        body: _homeBackdrop(
-          child: Column(
-            children: [
-              _header(top),
-              _searchBar(),
-              Expanded(
-                child: SkeletonSwitcher(
-                  loading: _loading,
-                  skeleton: const SkeletonList(count: 9),
-                  child: _list(),
-                ),
+        backgroundColor: AppColors.homeBackground,
+        body: Column(
+          children: [
+            _fixedTop(),
+            Expanded(
+              child: SkeletonSwitcher(
+                loading: _loading,
+                skeleton: const SkeletonList(count: 9),
+                child: _list(),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

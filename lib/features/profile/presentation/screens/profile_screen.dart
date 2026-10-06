@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:community/core/constants/asset_constants.dart';
 import 'package:community/core/theme/app_colors.dart';
+import 'package:community/core/widgets/app_back_button.dart';
 import 'package:community/core/widgets/glass_morphism.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -138,114 +138,81 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFFD9F1EA),
-                  Color(0xFFE6F0F8),
-                  Color(0xFFF1F6F4),
+                  Color(0xFFDCE8F8),
+                  Color(0xFFE9F0FA),
+                  Color(0xFFF5FEFF),
                 ],
               ),
             ),
           ),
         ),
-        Positioned.fill(
-          child: Opacity(
-            opacity: 0.55,
-            child: Image.asset(
-              AssetConstants.background,
-              fit: BoxFit.cover,
-              alignment: Alignment.center,
-            ),
-          ),
-        ),
-        const Positioned(
-          top: -90,
-          left: -70,
-          child: GlassBlob(color: AppColors.brand, size: 280),
-        ),
-        const Positioned(
-          top: 260,
-          right: -110,
-          child: GlassBlob(color: AppColors.violet, size: 260, alpha: 0.22),
-        ),
-        const Positioned(
-          bottom: 90,
-          left: -90,
-          child: GlassBlob(color: AppColors.cyan, size: 300, alpha: 0.30),
-        ),
 
         SafeArea(
-          child: SingleChildScrollView(
-            physics: const ClampingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-            child: TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0, end: 1),
-              duration: const Duration(milliseconds: 450),
-              curve: Curves.easeOutCubic,
-              builder: (context, value, child) => Opacity(
-                opacity: value,
-                child: Transform.translate(
-                  offset: Offset(0, (1 - value) * 12),
-                  child: child,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          child: Column(
+            children: [
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      if (widget.onBack != null) ...[
-                        GestureDetector(
-                          onTap: widget.onBack,
-                          child: Glass(
-                            radius: BorderRadius.circular(22),
-                            blur: 14,
-                            opacity: 0.60,
-                            shadow: false,
-                            child: const SizedBox(
-                              width: 44,
-                              height: 44,
-                              child: Icon(
-                                Icons.arrow_back_ios_new_rounded,
-                                size: 18,
-                                color: AppColors.title,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                      ],
-                      const Text(
-                        'Profile',
-                        style: TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.3,
-                          color: AppColors.title,
-                        ),
-                      ),
-                    ],
+                  SizedBox(
+                    width: 76,
+                    child: AppBackButton(onPressed: widget.onBack),
                   ),
-                  const SizedBox(height: 16),
-                  _buildProfileCard(),
-                  const SizedBox(height: 12),
-                  _buildDetailsCard(),
-                  const SizedBox(height: 12),
-                  _buildAdminNote(),
-                  const SizedBox(height: 20),
-                  _buildMenuCard(),
-                  const SizedBox(height: 18),
-                  const Center(
+                  const Padding(
+                    padding: EdgeInsets.only(top: 8),
                     child: Text(
-                      'NIVA · Version 1.0.0',
+                      'Profile',
                       style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.hint,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.3,
+                        color: AppColors.title,
                       ),
                     ),
                   ),
                 ],
               ),
-            ),
+
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: 1),
+                    duration: const Duration(milliseconds: 450),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, value, child) => Opacity(
+                      opacity: value,
+                      child: Transform.translate(
+                        offset: Offset(0, (1 - value) * 12),
+                        child: child,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildProfileCard(),
+                        const SizedBox(height: 12),
+                        _buildDetailsCard(),
+                        const SizedBox(height: 12),
+                        _buildAdminNote(),
+                        const SizedBox(height: 20),
+                        _buildMenuCard(),
+                        const SizedBox(height: 18),
+                        const Center(
+                          child: Text(
+                            'NIVA · Version 1.0.0',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.hint,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -489,7 +456,6 @@ Widget _glassSheet({required Widget child}) {
   );
 }
 
-
 Widget _detailRow({
   required IconData icon,
   required String label,
@@ -567,7 +533,6 @@ Widget _menuRow({
     ),
   );
 }
-
 
 const List<({IconData icon, String name, String role, String phone})>
 _helpContacts = [

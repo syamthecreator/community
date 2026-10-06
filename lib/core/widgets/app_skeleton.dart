@@ -1,9 +1,10 @@
 
 
+import 'package:community/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
-const Color _skBase = Color(0xFFD6E5E0);
-const Color _skHighlight = Color(0xFFF3FAF8);
+const Color _skBase = AppColors.skeletonBase;          
+const Color _skHighlight = AppColors.skeletonHighlight; 
 
 class SkeletonShimmer extends StatefulWidget {
   const SkeletonShimmer({super.key, required this.child});

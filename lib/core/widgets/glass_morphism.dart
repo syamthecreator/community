@@ -1,7 +1,7 @@
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
 import 'package:community/core/theme/app_colors.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class Glass extends StatelessWidget {
@@ -47,7 +47,8 @@ class Glass extends StatelessWidget {
         ),
         border: Border.all(
           color:
-              borderColor ?? AppColors.kwhite.withValues(alpha: borderOpacity),
+              borderColor ??
+              AppColors.kwhite.withValues(alpha: borderOpacity),
           width: 1.2,
         ),
       ),
@@ -224,7 +225,7 @@ class GlassPrimaryButton extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFF2BC9A4),
+                  AppColors.brandLight,
                   AppColors.brand,
                   AppColors.brandDark,
                 ],

@@ -1,5 +1,5 @@
-import 'package:community/core/constants/asset_constants.dart';
 import 'package:community/core/theme/app_colors.dart';
+import 'package:community/core/widgets/app_back_button.dart';
 import 'package:flutter/material.dart';
 
 enum NotificationType {
@@ -167,6 +167,7 @@ List<AppNotification> mockNotifications() {
     ),
   ];
 }
+
 class NotificationStore extends ChangeNotifier {
   NotificationStore._();
 
@@ -174,7 +175,6 @@ class NotificationStore extends ChangeNotifier {
   final List<AppNotification> _items = mockNotifications();
   List<AppNotification> get notifications => List.unmodifiable(_items);
   int get unreadCount => _items.where((n) => !n.isRead).length;
-
 
   void _setRead(String id, bool read) {
     final index = _items.indexWhere((n) => n.id == id);
@@ -307,14 +307,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Stack(
+      fit: StackFit.expand,
       children: [
-        Positioned.fill(
-          child: Opacity(
-            opacity: 0.5,
-            child: Image.asset(
-              AssetConstants.background,
-              fit: BoxFit.cover,
-              alignment: Alignment.center,
+        const Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFFDCE8F8),
+                  Color(0xFFE9F0FA),
+                  Color(0xFFF5FEFF),
+                ],
+              ),
             ),
           ),
         ),
@@ -351,35 +357,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Widget _buildHeader(int unread) {
-    final summary = unread == 0
-        ? "You're all caught up"
-        : '$unread unread '
-              '${unread == 1 ? 'notification' : 'notifications'}';
+  final summary = unread == 0
+      ? "You're all caught up"
+      : '$unread unread ${unread == 1 ? 'notification' : 'notifications'}';
 
-    final circleStyle = IconButton.styleFrom(
-      backgroundColor: AppColors.kwhite,
-      side: BorderSide(color: AppColors.border.withValues(alpha: 0.4)),
-      fixedSize: const Size(44, 44),
-    );
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-      child: Row(
-        children: [
-          if (widget.onBack != null) ...[
-            IconButton(
-              tooltip: 'Back',
-              onPressed: widget.onBack,
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
-              color: AppColors.title,
-              style: circleStyle,
-            ),
-
-            const SizedBox(width: 12),
-          ],
-
-          Expanded(
+  return Row(
+    children: [
+      SizedBox(width: 76, child: AppBackButton(onPressed: widget.onBack)),
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: SizedBox(
+            height: 44,
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
@@ -387,39 +378,47 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
                     letterSpacing: -0.3,
+                    height: 1.15,
                     color: AppColors.title,
                   ),
                 ),
-
                 const SizedBox(height: 2),
-
                 Text(
                   summary,
                   style: const TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
                     color: AppColors.body,
                   ),
                 ),
               ],
             ),
           ),
-
-          if (unread > 0)
-            IconButton(
-              tooltip: 'Mark all as read',
-              onPressed: _store.markAllRead,
-              icon: const Icon(Icons.done_all_rounded, size: 22),
-              color: AppColors.brand,
-              style: circleStyle,
-            ),
-        ],
+        ),
       ),
-    );
-  }
+      if (unread > 0)
+        Padding(
+          padding: const EdgeInsets.only(top: 8, right: 20),
+          child: IconButton(
+            tooltip: 'Mark all as read',
+            onPressed: _store.markAllRead,
+            icon: const Icon(Icons.done_all_rounded, size: 22),
+            color: AppColors.brand,
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.kwhite,
+              side: BorderSide(color: AppColors.border.withValues(alpha: 0.55)),
+              fixedSize: const Size(44, 44),
+            ),
+          ),
+        )
+      else
+        const SizedBox(width: 20),
+    ],
+  );
+}
 
   Widget _buildFilters({
     required int all,
@@ -541,7 +540,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     final Color cardColor = notification.isRead
         ? AppColors.kwhite
-        : Color.alphaBlend(AppColors.brand.withValues(alpha: 0.06), AppColors.kwhite);
+        : Color.alphaBlend(
+            AppColors.brand.withValues(alpha: 0.06),
+            AppColors.kwhite,
+          );
 
     return TweenAnimationBuilder<double>(
       key: ValueKey(notification.id),

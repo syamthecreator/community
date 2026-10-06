@@ -13,7 +13,7 @@ class ConnectivityService extends ChangeNotifier {
   StreamSubscription<List<ConnectivityResult>>? _sub;
   Timer? _poll;
 
-  bool _online = true; // optimistic, avoids a flash on startup
+  bool _online = true;
   bool _checking = false;
 
   bool get isOnline => _online;
@@ -22,12 +22,9 @@ class ConnectivityService extends ChangeNotifier {
   Future<void> _init() async {
     await check();
     _sub = _connectivity.onConnectivityChanged.listen((_) => check());
-    // Catches "connected to Wi-Fi but no internet", which has no event.
     _poll = Timer.periodic(const Duration(seconds: 10), (_) => check());
   }
 
-  /// Returns true if the internet is reachable.
-  /// [manual] shows the loading state on the Retry button.
   Future<bool> check({bool manual = false}) async {
     if (_checking) return _online;
 

@@ -45,18 +45,6 @@ class _Category {
 
 const List<_Category> _categories = [
   _Category(
-    label: 'Plumbing',
-    color: AppColors.info,
-    icon: Icons.plumbing_rounded,
-    issues: [
-      'Leakage',
-      'Blocked drain',
-      'Tap not working',
-      'Low water pressure',
-      'Flush / toilet issue',
-    ],
-  ),
-  _Category(
     label: 'Electrical',
     color: AppColors.warning,
     icon: Icons.bolt_rounded,
@@ -67,6 +55,13 @@ const List<_Category> _categories = [
       'MCB keeps tripping',
     ],
   ),
+  _Category(
+    label: 'Water',
+    color: AppColors.cyan,
+    icon: Icons.water_drop_outlined,
+    issues: ['No water supply', 'Dirty water', 'Tank overflow'],
+  ),
+
   _Category(
     label: 'Lift',
     icon: Icons.elevator_outlined,
@@ -105,19 +100,13 @@ const List<_Category> _categories = [
     icon: Icons.shield_outlined,
     issues: ['Suspicious person', 'Gate problem', 'CCTV not working'],
   ),
-  _Category(
-    label: 'Water',
-    color: AppColors.cyan,
-    icon: Icons.water_drop_outlined,
-    issues: ['No water supply', 'Dirty water', 'Tank overflow'],
-  ),
+
   _Category(
     label: 'Other',
     color: AppColors.slate,
     icon: Icons.more_horiz_rounded,
   ),
 ];
-
 
 class ReportIssueView extends StatefulWidget {
   final bool startWithCustom;
@@ -142,7 +131,7 @@ class ReportIssueViewState extends State<ReportIssueView> {
   final TextEditingController _noteController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
 
-  int _step = 0; 
+  int _step = 0;
   _Category? _category;
   String? _issue;
   XFile? _photo;
@@ -393,65 +382,68 @@ class ReportIssueViewState extends State<ReportIssueView> {
     }
   }
 
-
   Widget _buildHeader() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 20, 0),
       child: Column(
         children: [
-          Row(
-            children: [
-              if (_step > 0) ...[
-                GestureDetector(
-                  onTap: _goBack,
-                  child: Glass(
-                    radius: BorderRadius.circular(22),
-                    blur: 14,
-                    opacity: 0.60,
-                    shadow: false,
-                    child: const SizedBox(
-                      width: 44,
-                      height: 44,
-                      child: Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        size: 18,
-                        color: AppColors.title,
+          SizedBox(
+            height: 44, 
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                if (_step > 0) ...[
+                  GestureDetector(
+                    onTap: _goBack,
+                    child: Glass(
+                      radius: BorderRadius.circular(22),
+                      blur: 14,
+                      opacity: 0.60,
+                      shadow: false,
+                      child: const SizedBox(
+                        width: 44,
+                        height: 44,
+                        child: Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          size: 18,
+                          color: AppColors.title,
+                        ),
                       ),
                     ),
                   ),
+                  const SizedBox(width: 12),
+                ],
+                const Expanded(
+                  child: Text(
+                    'Report an Issue',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.2,
+                      color: AppColors.title,
+                    ),
+                  ),
                 ),
-                const SizedBox(width: 12),
+                Glass(
+                  radius: BorderRadius.circular(20),
+                  blur: 0,
+                  opacity: 0.60,
+                  shadow: false,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 5,
+                  ),
+                  child: Text(
+                    'Step ${_step + 1} of $_stepCount',
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.body,
+                    ),
+                  ),
+                ),
               ],
-              const Expanded(
-                child: Text(
-                  'Report an Issue',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.2,
-                    color: AppColors.title,
-                  ),
-                ),
-              ),
-              Glass(
-                radius: BorderRadius.circular(20),
-                blur: 0,
-                opacity: 0.60,
-                shadow: false,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 5,
-                ),
-                child: Text(
-                  'Step ${_step + 1} of $_stepCount',
-                  style: const TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.body,
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
           const SizedBox(height: 14),
           Padding(
@@ -506,7 +498,9 @@ class ReportIssueViewState extends State<ReportIssueView> {
               color: AppColors.title,
             ),
           ),
+
           const SizedBox(height: 6),
+
           const Text(
             'Pick a category. No typing needed.',
             style: TextStyle(
@@ -515,17 +509,24 @@ class ReportIssueViewState extends State<ReportIssueView> {
               color: AppColors.body,
             ),
           ),
-          const SizedBox(height: 20),
+
+          const SizedBox(height: 16),
+
           GridView.count(
+            padding: EdgeInsets.zero,
             crossAxisCount: 3,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             mainAxisSpacing: 12,
             crossAxisSpacing: 12,
             childAspectRatio: 0.95,
-            children: [for (final c in _categories) _buildCategoryTile(c)],
+            children: [
+              for (final category in _categories) _buildCategoryTile(category),
+            ],
           ),
+
           const SizedBox(height: 20),
+
           Glass(
             padding: const EdgeInsets.all(14),
             radius: BorderRadius.circular(16),
@@ -583,55 +584,100 @@ class ReportIssueViewState extends State<ReportIssueView> {
 
   Widget _buildCategoryTile(_Category category) {
     final selected = _category == category;
-    final color = category.color;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => _selectCategory(category),
       child: Glass(
-        radius: BorderRadius.circular(16),
+        radius: BorderRadius.circular(18),
         blur: 0,
-        opacity: selected ? 0.70 : 0.55,
-        tint: Color.alphaBlend(
-          color.withValues(alpha: selected ? 0.22 : 0.08),
-          AppColors.kwhite,
-        ),
-        borderColor: selected ? color : color.withValues(alpha: 0.30),
-        shadow: false,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        opacity: selected ? 0.85 : 0.65,
+        tint: selected
+            ? Color.alphaBlend(
+                AppColors.brand.withValues(alpha: 0.10),
+                AppColors.kwhite,
+              )
+            : AppColors.kwhite,
+        borderColor: selected
+            ? AppColors.brand
+            : AppColors.border.withValues(alpha: 0.60),
+        shadow: selected,
+        child: Stack(
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.16),
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.kwhite.withValues(alpha: 0.7)),
+            Positioned.fill(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: selected
+                            ? [AppColors.brandLight, AppColors.brandDark]
+                            : [
+                                AppColors.paletteSoft.withValues(alpha: 0.55),
+                                AppColors.paletteSoft.withValues(alpha: 0.20),
+                              ],
+                      ),
+                      border: Border.all(
+                        color: AppColors.kwhite.withValues(alpha: 0.85),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Icon(
+                      category.icon,
+                      size: 24,
+                      color: selected ? AppColors.kwhite : AppColors.brandDark,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Text(
+                      category.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: selected
+                            ? FontWeight.w700
+                            : FontWeight.w600,
+                        color: AppColors.title,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              child: Icon(category.icon, color: color, size: 24),
             ),
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Text(
-                category.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.title,
+            if (selected)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  width: 18,
+                  height: 18,
+                  decoration: const BoxDecoration(
+                    color: AppColors.brand,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_rounded,
+                    size: 12,
+                    color: AppColors.kwhite,
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),
     );
   }
 
- 
   Widget _buildDetailsStep() {
     final category = _category!;
 
@@ -1093,9 +1139,14 @@ class ReportIssueViewState extends State<ReportIssueView> {
           blur: 0,
           opacity: selected ? 0.70 : 0.55,
           tint: selected
-              ? Color.alphaBlend(color.withValues(alpha: 0.18), AppColors.kwhite)
+              ? Color.alphaBlend(
+                  color.withValues(alpha: 0.18),
+                  AppColors.kwhite,
+                )
               : AppColors.kwhite,
-          borderColor: selected ? color : AppColors.kwhite.withValues(alpha: 0.85),
+          borderColor: selected
+              ? color
+              : AppColors.kwhite.withValues(alpha: 0.85),
           shadow: false,
           child: Row(
             children: [
@@ -1217,7 +1268,6 @@ class ReportIssueViewState extends State<ReportIssueView> {
   Widget _buildDivider() {
     return Divider(height: 1, color: AppColors.border.withValues(alpha: 0.25));
   }
-
 
   Widget _buildSuccess() {
     final adminOnly = _visibility == ReportVisibility.adminOnly;
